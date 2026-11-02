@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mortar.dev/schemas/blueprint/v1.json",
+  "title": "Mortar Application Blueprint v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "application", "frontend", "backend", "database", "capabilities", "custom_services", "roles", "components"],
+  "properties": {
+    "apiVersion": { "const": "mortar/v1" },
+    "kind": { "const": "Application" },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "prompt"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,62}$" },
+        "prompt": { "type": "string", "minLength": 1 },
+        "timestamp": { "type": ["string", "null"] }
+      }
+    },
+    "application": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "domain"],
+      "properties": {
+        "type": { "const": "internal-tool" },
+        "domain": { "type": "string", "minLength": 1 }
+      }
+    },
+    "frontend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template", "entities", "pages"],
+      "properties": {
+        "template": { "const": "react-admin-v1" },
+        "entities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "fields"],
+            "properties": {
+              "name": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*$" },
+              "fields": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" }
+              },
+              "readOnly": { "type": "boolean" }
+            }
+          }
+        },
+        "pages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "entity"],
+            "properties": {
+              "type": { "enum": ["list", "detail", "kanban"] },
+              "entity": { "type": "string" },
+              "groupBy": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["framework", "javaVersion", "springBootVersion", "basePackage"],
+      "properties": {
+        "framework": { "const": "spring-boot" },
+        "javaVersion": { "const": 21 },
+        "springBootVersion": { "type": "string", "pattern": "^4\\.\\d+\\.(x|\\d+)$" },
+        "basePackage": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$" }
+      }
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "migrations"],
+      "properties": {
+        "type": { "const": "postgresql" },
+        "migrations": { "const": "flyway" }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string" }
+    },
+    "custom_services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "responsibility"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*Service$" },
+          "responsibility": { "type": "string", "minLength": 1, "pattern": "\\S" }
+        }
+      }
+    },
+    "custom_controllers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "responsibility"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*Controller$" },
+          "responsibility": { "type": "string", "minLength": 1, "pattern": "\\S" }
+        }
+      }
+    },
+    "roles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "permissions"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+          "permissions": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["module_id", "version", "config"],
+        "properties": {
+          "module_id": { "type": "string" },
+          "version": { "type": "string" },
+          "config": { "type": "object" }
+        }
+      }
+    },
+    "uncovered": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
