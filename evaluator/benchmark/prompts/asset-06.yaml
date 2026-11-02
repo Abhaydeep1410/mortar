@@ -1,0 +1,40 @@
+id: asset-06
+title: IT asset registry
+domain: it-assets
+prompt: |
+  Build an internal IT asset registry. It manages Assets (tag, name, category,
+  status, purchaseDate), Owners (name, email, department) and Assignments (assetId,
+  ownerId, assignedAt, returnedAt). Asset tags are unique (409 on duplicates). Asset
+  status is IN_STOCK, ASSIGNED or RETIRED, and new assets start IN_STOCK. Creating an
+  Assignment for an asset sets the asset to ASSIGNED and returns 409 if the asset is
+  already assigned (an assignment without returnedAt) or is RETIRED. `POST
+  /api/assignments/{id}/return` sets returnedAt to now and the asset back to
+  IN_STOCK, and returns 409 if the assignment was already returned. Roles: ADMIN has
+  full access; IT_MANAGER has full access to assets, owners and assignments, and can
+  export assets; AUDITOR can read assets, owners and assignments and can export
+  assets. Every change must be audited. Assets can be exported as CSV.
+entities:
+  - { name: Asset, fields: [tag, name, category, status, purchaseDate] }
+  - { name: Owner, fields: [name, email, department] }
+  - { name: Assignment, fields: [assetId, ownerId, assignedAt, returnedAt] }
+capabilities: [authentication.jwt, authorization.rbac, audit.logging, crud.pagination, export.csv, deployment.docker]
+roles:
+  - { name: ADMIN, permissions: ["*"] }
+  - { name: IT_MANAGER, permissions: ["asset:*", "owner:*", "assignment:*"] }
+  - { name: AUDITOR, permissions: ["asset:read", "asset:export", "owner:read", "assignment:read"] }
+seeded_users:
+  - { username: admin, password: "Admin#12345", role: ADMIN }
+  - { username: it_manager, password: "It_manager#12345", role: IT_MANAGER }
+  - { username: auditor, password: "Auditor#12345", role: AUDITOR }
+seed_data: []
+acceptance_criteria:
+  - { id: asset-06.1, type: api, text: "Login with valid credentials returns a token; invalid credentials return 401; /api/** without a token returns 401." }
+  - { id: asset-06.2, type: api, text: "Creating an Asset with an existing tag returns 409; a new asset has status IN_STOCK." }
+  - { id: asset-06.3, type: api, text: "Creating an Assignment sets the asset status to ASSIGNED." }
+  - { id: asset-06.4, type: api, text: "A second Assignment for an asset that has not been returned returns 409; an Assignment for a RETIRED asset returns 409." }
+  - { id: asset-06.5, type: api, text: "Returning an assignment sets returnedAt and sets the asset back to IN_STOCK; returning it again returns 409." }
+  - { id: asset-06.6, type: api, text: "AUDITOR gets 403 on creating an Asset, Owner or Assignment; IT_MANAGER can create all three." }
+  - { id: asset-06.7, type: api, text: "Asset list is paginated: page and size parameters are honored and totalElements is correct for 25 created assets." }
+  - { id: asset-06.8, type: api, text: "Asset export returns CSV with a header row of the asset field names and one row per asset; IT_MANAGER and AUDITOR can export." }
+  - { id: asset-06.9, type: api, text: "Each successful create, update and delete on Asset, Owner and Assignment produces an audit record with actor, action, entity and entity id; only ADMIN can list audit logs." }
+  - { id: asset-06.10, type: ui, text: "After login the frontend lists Assets in a paginated table with sidebar entries for Assets, Owners and Assignments." }

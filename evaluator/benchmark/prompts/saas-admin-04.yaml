@@ -1,0 +1,38 @@
+id: saas-admin-04
+title: SaaS admin console
+domain: saas-admin
+prompt: |
+  Build an internal admin console for a SaaS product. It manages Users (email,
+  fullName, planId, status), Plans (name, monthlyPrice, seatLimit) and Invoices
+  (userId, amount, issuedAt, status). Invoices are read-only: the API must reject
+  POST, PUT and DELETE on invoices for every role with 405, and the app must seed at
+  least three invoices on first start. User status is ACTIVE or SUSPENDED. A user's
+  email must be unique (409 on duplicates). Deleting a plan that still has users
+  assigned returns 409. Roles: ADMIN can manage users and plans and read invoices;
+  SUPPORT can read and write users, and read plans and invoices; VIEWER can read
+  users, plans and invoices. Every change to a user or plan must be audited.
+entities:
+  - { name: User, fields: [email, fullName, planId, status] }
+  - { name: Plan, fields: [name, monthlyPrice, seatLimit] }
+  - { name: Invoice, fields: [userId, amount, issuedAt, status], readOnly: true }
+capabilities: [authentication.jwt, authorization.rbac, audit.logging, crud.pagination, deployment.docker]
+roles:
+  - { name: ADMIN, permissions: ["user:*", "plan:*", "invoice:read"] }
+  - { name: SUPPORT, permissions: ["user:read", "user:write", "plan:read", "invoice:read"] }
+  - { name: VIEWER, permissions: ["user:read", "plan:read", "invoice:read"] }
+seeded_users:
+  - { username: admin, password: "Admin#12345", role: ADMIN }
+  - { username: support, password: "Support#12345", role: SUPPORT }
+  - { username: viewer, password: "Viewer#12345", role: VIEWER }
+seed_data:
+  - "At least two plans and three invoices exist on first start."
+acceptance_criteria:
+  - { id: saas-admin-04.1, type: api, text: "Login with valid credentials returns a token; invalid credentials return 401; /api/** without a token returns 401." }
+  - { id: saas-admin-04.2, type: api, text: "GET /api/invoices returns at least three invoices to every role." }
+  - { id: saas-admin-04.3, type: api, text: "POST, PUT and DELETE on /api/invoices return 405 for ADMIN, SUPPORT and VIEWER." }
+  - { id: saas-admin-04.4, type: api, text: "Creating a User with an existing email returns 409." }
+  - { id: saas-admin-04.5, type: api, text: "SUPPORT can create and update users but gets 403 deleting a User or creating a Plan; VIEWER gets 403 on any write." }
+  - { id: saas-admin-04.6, type: api, text: "Deleting a Plan with at least one assigned user returns 409; deleting an unused Plan succeeds for ADMIN." }
+  - { id: saas-admin-04.7, type: api, text: "User list is paginated: page and size parameters are honored and totalElements is correct for 25 created users." }
+  - { id: saas-admin-04.8, type: api, text: "Each successful create, update and delete on User and Plan produces an audit record with actor, action, entity and entity id; only ADMIN can list audit logs." }
+  - { id: saas-admin-04.9, type: ui, text: "After login the frontend lists Users in a paginated table and shows Invoices without create or edit controls." }

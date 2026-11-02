@@ -1,0 +1,41 @@
+id: timesheet-08
+title: Timesheets
+domain: timesheets
+prompt: |
+  Build an internal timesheet app. It manages Projects (name, client, budgetHours),
+  Timesheets (employeeId, weekStart, status) and Entries (timesheetId, projectId,
+  workDate, hours, description). A timesheet's status is DRAFT or SUBMITTED, new
+  timesheets are DRAFT, and employeeId is always the caller's user id. An entry's
+  hours must be greater than 0 and at most 24, and the total hours of all entries
+  for one timesheet on one workDate may not exceed 24 (400 otherwise). `POST
+  /api/timesheets/{id}/submit` sets the status to SUBMITTED and returns 409 if it is
+  already submitted; entries of a SUBMITTED timesheet cannot be created, updated or
+  deleted (409). Roles: ADMIN has full access; MANAGER has full access to projects,
+  timesheets and entries and can export entries; EMPLOYEE can read projects, read
+  and write timesheets and entries. Entries can be exported as CSV.
+entities:
+  - { name: Project, fields: [name, client, budgetHours] }
+  - { name: Timesheet, fields: [employeeId, weekStart, status] }
+  - { name: Entry, fields: [timesheetId, projectId, workDate, hours, description] }
+capabilities: [authentication.jwt, authorization.rbac, crud.pagination, export.csv, deployment.docker]
+roles:
+  - { name: ADMIN, permissions: ["*"] }
+  - { name: MANAGER, permissions: ["project:*", "timesheet:*", "entry:*"] }
+  - { name: EMPLOYEE, permissions: ["project:read", "timesheet:read", "timesheet:write", "entry:read", "entry:write"] }
+seeded_users:
+  - { username: admin, password: "Admin#12345", role: ADMIN }
+  - { username: manager, password: "Manager#12345", role: MANAGER }
+  - { username: employee, password: "Employee#12345", role: EMPLOYEE }
+seed_data:
+  - "At least two projects exist on first start."
+acceptance_criteria:
+  - { id: timesheet-08.1, type: api, text: "Login with valid credentials returns a token; invalid credentials return 401; /api/** without a token returns 401." }
+  - { id: timesheet-08.2, type: api, text: "A new Timesheet has status DRAFT and employeeId equal to the caller's user id regardless of the request body." }
+  - { id: timesheet-08.3, type: api, text: "An Entry with hours 0, negative, or above 24 returns 400." }
+  - { id: timesheet-08.4, type: api, text: "Entries on one timesheet and one workDate totalling more than 24 hours are rejected with 400; totalling exactly 24 are accepted." }
+  - { id: timesheet-08.5, type: api, text: "Submitting a timesheet sets status SUBMITTED; submitting again returns 409." }
+  - { id: timesheet-08.6, type: api, text: "Creating, updating or deleting an Entry on a SUBMITTED timesheet returns 409." }
+  - { id: timesheet-08.7, type: api, text: "EMPLOYEE gets 403 creating, updating or deleting a Project; MANAGER can manage Projects." }
+  - { id: timesheet-08.8, type: api, text: "Entry list is paginated: page and size parameters are honored and totalElements is correct for 25 created entries." }
+  - { id: timesheet-08.9, type: api, text: "Entry export returns CSV with a header row of the entry field names and one row per entry; EMPLOYEE gets 403 on export." }
+  - { id: timesheet-08.10, type: ui, text: "After login the frontend lists Timesheets in a paginated table with sidebar entries for Projects, Timesheets and Entries." }

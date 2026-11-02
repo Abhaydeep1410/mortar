@@ -1,0 +1,40 @@
+id: expense-02
+title: Expense tracker
+domain: expenses
+prompt: |
+  Build an internal expense tracker. It manages Expenses (title, amount, categoryId,
+  submittedBy, status, submittedAt), Categories (name, budgetLimit) and Approvals
+  (expenseId, approverId, decision, comment, decidedAt). An expense amount must be
+  greater than zero. New expenses start with status PENDING and can only become
+  APPROVED or REJECTED by creating an Approval with decision APPROVED or REJECTED;
+  the status cannot be edited directly, and a decided expense cannot receive another
+  approval. Roles: ADMIN has full access; MANAGER can read and write expenses, read
+  categories, and read and write approvals; EMPLOYEE can read and write expenses and
+  read categories, but an EMPLOYEE only sees expenses they submitted themselves. The
+  submittedBy field is always the caller's user id. Every change must be audited.
+entities:
+  - { name: Expense, fields: [title, amount, categoryId, submittedBy, status, submittedAt] }
+  - { name: Category, fields: [name, budgetLimit] }
+  - { name: Approval, fields: [expenseId, approverId, decision, comment, decidedAt] }
+capabilities: [authentication.jwt, authorization.rbac, audit.logging, crud.pagination, deployment.docker]
+roles:
+  - { name: ADMIN, permissions: ["*"] }
+  - { name: MANAGER, permissions: ["expense:read", "expense:write", "category:read", "approval:read", "approval:write"] }
+  - { name: EMPLOYEE, permissions: ["expense:read", "expense:write", "category:read"] }
+seeded_users:
+  - { username: admin, password: "Admin#12345", role: ADMIN }
+  - { username: manager, password: "Manager#12345", role: MANAGER }
+  - { username: employee, password: "Employee#12345", role: EMPLOYEE }
+seed_data:
+  - "At least two categories exist on first start."
+acceptance_criteria:
+  - { id: expense-02.1, type: api, text: "Login with valid credentials returns a token; invalid credentials return 401; /api/** without a token returns 401." }
+  - { id: expense-02.2, type: api, text: "An expense with amount <= 0 is rejected with 400; a valid expense is created with status PENDING and submittedBy equal to the caller's user id." }
+  - { id: expense-02.3, type: api, text: "A direct PUT that changes an expense's status is ignored or rejected with 400; the status is unchanged afterwards." }
+  - { id: expense-02.4, type: api, text: "A MANAGER creating an Approval with decision APPROVED sets the expense status to APPROVED; REJECTED sets it to REJECTED." }
+  - { id: expense-02.5, type: api, text: "A second Approval on an already decided expense returns 409." }
+  - { id: expense-02.6, type: api, text: "An EMPLOYEE listing expenses sees only expenses they submitted, with a correct totalElements; MANAGER and ADMIN see all." }
+  - { id: expense-02.7, type: api, text: "EMPLOYEE gets 403 on creating an Approval and on creating or deleting a Category." }
+  - { id: expense-02.8, type: api, text: "Expense list is paginated: page and size parameters are honored and totalElements is correct for 25 created expenses." }
+  - { id: expense-02.9, type: api, text: "Each successful create, update and delete on Expense, Category and Approval produces an audit record with actor, action, entity and entity id; only ADMIN can list audit logs." }
+  - { id: expense-02.10, type: ui, text: "After login the frontend lists Expenses in a paginated table and offers a create form that submits a valid expense." }

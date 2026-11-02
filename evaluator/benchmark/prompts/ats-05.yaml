@@ -1,0 +1,43 @@
+id: ats-05
+title: Applicant tracking
+domain: recruiting
+prompt: |
+  Build an internal applicant tracking system. It manages Candidates (fullName,
+  email, position, stageId, appliedAt), Stages (name, orderIndex) and Interviews
+  (candidateId, interviewerId, scheduledAt, feedback, rating). The app seeds six
+  stages on first start with orderIndex 1 to 6: Applied, Screening, Interview, Offer,
+  Hired, Rejected. New candidates start in Applied. `POST /api/candidates/{id}/advance`
+  moves a candidate to the stage with the next orderIndex (Applied→Screening→
+  Interview→Offer→Hired); it never moves a candidate into Rejected, and returns 400
+  when the candidate is already in Hired or Rejected.
+  `POST /api/candidates/{id}/reject` moves a candidate to Rejected. An interview
+  rating must be between 1 and 5 inclusive and the candidate must exist (400
+  otherwise). Roles: ADMIN has full access; RECRUITER has full access to candidates
+  and interviews and can read stages; INTERVIEWER can read candidates and stages and
+  can read and write interviews. Every change must be audited.
+entities:
+  - { name: Candidate, fields: [fullName, email, position, stageId, appliedAt] }
+  - { name: Stage, fields: [name, orderIndex] }
+  - { name: Interview, fields: [candidateId, interviewerId, scheduledAt, feedback, rating] }
+capabilities: [authentication.jwt, authorization.rbac, audit.logging, crud.pagination, deployment.docker]
+roles:
+  - { name: ADMIN, permissions: ["*"] }
+  - { name: RECRUITER, permissions: ["candidate:*", "stage:read", "interview:*"] }
+  - { name: INTERVIEWER, permissions: ["candidate:read", "stage:read", "interview:read", "interview:write"] }
+seeded_users:
+  - { username: admin, password: "Admin#12345", role: ADMIN }
+  - { username: recruiter, password: "Recruiter#12345", role: RECRUITER }
+  - { username: interviewer, password: "Interviewer#12345", role: INTERVIEWER }
+seed_data:
+  - "Six stages exist on first start: Applied, Screening, Interview, Offer, Hired, Rejected, with orderIndex 1 to 6."
+acceptance_criteria:
+  - { id: ats-05.1, type: api, text: "Login with valid credentials returns a token; invalid credentials return 401; /api/** without a token returns 401." }
+  - { id: ats-05.2, type: api, text: "GET /api/stages returns the six seeded stages in orderIndex order 1 to 6." }
+  - { id: ats-05.3, type: api, text: "A newly created Candidate is in the Applied stage." }
+  - { id: ats-05.4, type: api, text: "Advancing a candidate repeatedly moves it Applied→Screening→Interview→Offer→Hired; advancing from Hired returns 400." }
+  - { id: ats-05.5, type: api, text: "Rejecting a candidate moves it to Rejected, and advancing a Rejected candidate returns 400." }
+  - { id: ats-05.6, type: api, text: "An Interview with rating 0 or 6, or with a non-existent candidateId, returns 400; rating 1 and 5 are accepted." }
+  - { id: ats-05.7, type: api, text: "INTERVIEWER can create Interviews but gets 403 creating or deleting a Candidate; RECRUITER can create Candidates but gets 403 creating a Stage." }
+  - { id: ats-05.8, type: api, text: "Candidate list is paginated: page and size parameters are honored and totalElements is correct for 25 created candidates." }
+  - { id: ats-05.9, type: api, text: "Each successful create, update and delete on Candidate, Stage and Interview produces an audit record with actor, action, entity and entity id; only ADMIN can list audit logs." }
+  - { id: ats-05.10, type: ui, text: "After login the frontend lists Candidates in a paginated table with sidebar entries for Candidates, Stages and Interviews." }

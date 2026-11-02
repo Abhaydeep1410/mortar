@@ -1,0 +1,37 @@
+id: inventory-03
+title: Inventory
+domain: inventory
+prompt: |
+  Build an internal inventory manager. It manages Items (sku, name, unit,
+  reorderLevel), Locations (name, address) and Stock records (itemId, locationId,
+  quantity). The sku of an item is unique (a duplicate returns 409). Quantity may
+  never be negative (400). There is at most one Stock record per item and location
+  pair (a duplicate returns 409). `GET /api/items/low-stock` returns the items whose
+  total quantity across all locations is below their reorderLevel. Roles: ADMIN has
+  full access; MANAGER has full access to items, stock and locations except deleting
+  locations, and can export items and stock; STAFF can read items, stock and
+  locations and can write stock only. Items and stock can be exported as CSV.
+entities:
+  - { name: Item, fields: [sku, name, unit, reorderLevel] }
+  - { name: Location, fields: [name, address] }
+  - { name: Stock, fields: [itemId, locationId, quantity] }
+capabilities: [authentication.jwt, authorization.rbac, crud.pagination, export.csv, deployment.docker]
+roles:
+  - { name: ADMIN, permissions: ["*"] }
+  - { name: MANAGER, permissions: ["item:*", "stock:*", "location:read", "location:write"] }
+  - { name: STAFF, permissions: ["item:read", "stock:read", "stock:write", "location:read"] }
+seeded_users:
+  - { username: admin, password: "Admin#12345", role: ADMIN }
+  - { username: manager, password: "Manager#12345", role: MANAGER }
+  - { username: staff, password: "Staff#12345", role: STAFF }
+seed_data: []
+acceptance_criteria:
+  - { id: inventory-03.1, type: api, text: "Login with valid credentials returns a token; invalid credentials return 401; /api/** without a token returns 401." }
+  - { id: inventory-03.2, type: api, text: "Creating an Item with an existing sku returns 409; creating one with a new sku returns 201 or 200 with an id." }
+  - { id: inventory-03.3, type: api, text: "Creating or updating Stock with a negative quantity returns 400." }
+  - { id: inventory-03.4, type: api, text: "A second Stock record for the same item and location returns 409." }
+  - { id: inventory-03.5, type: api, text: "GET /api/items/low-stock returns exactly the items whose summed stock quantity is below reorderLevel, including items with no stock records." }
+  - { id: inventory-03.6, type: api, text: "STAFF can read items and write stock but gets 403 creating or deleting an Item; MANAGER gets 403 deleting a Location; ADMIN can delete a Location." }
+  - { id: inventory-03.7, type: api, text: "Item list is paginated: page and size parameters are honored and totalElements is correct for 25 created items." }
+  - { id: inventory-03.8, type: api, text: "Item export returns CSV with a header row of the item field names and one row per item; STAFF gets 403 on export." }
+  - { id: inventory-03.9, type: ui, text: "After login the frontend lists Items and Stock in paginated tables with sidebar entries for Items, Locations and Stock." }

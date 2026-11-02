@@ -1,0 +1,35 @@
+id: vendor-07
+title: Vendor directory
+domain: procurement
+prompt: |
+  Build an internal vendor directory. It manages Vendors (name, category,
+  contactEmail, status), Contracts (vendorId, title, value, startDate, endDate) and
+  Contacts (vendorId, name, email, phone). Vendor status is ACTIVE or INACTIVE. A
+  contract's endDate must be after its startDate (400 otherwise) and its vendor must
+  exist (400 otherwise). Deleting a vendor that has contracts returns 409.
+  `GET /api/vendors/{id}/contracts` returns that vendor's contracts, paginated like
+  any list endpoint. Roles: ADMIN has full access; PROCUREMENT has full access to
+  vendors, contracts and contacts; VIEWER can only read vendors, contracts and
+  contacts.
+entities:
+  - { name: Vendor, fields: [name, category, contactEmail, status] }
+  - { name: Contract, fields: [vendorId, title, value, startDate, endDate] }
+  - { name: Contact, fields: [vendorId, name, email, phone] }
+capabilities: [authentication.jwt, authorization.rbac, crud.pagination, deployment.docker]
+roles:
+  - { name: ADMIN, permissions: ["*"] }
+  - { name: PROCUREMENT, permissions: ["vendor:*", "contract:*", "contact:*"] }
+  - { name: VIEWER, permissions: ["vendor:read", "contract:read", "contact:read"] }
+seeded_users:
+  - { username: admin, password: "Admin#12345", role: ADMIN }
+  - { username: procurement, password: "Procurement#12345", role: PROCUREMENT }
+  - { username: viewer, password: "Viewer#12345", role: VIEWER }
+seed_data: []
+acceptance_criteria:
+  - { id: vendor-07.1, type: api, text: "Login with valid credentials returns a token; invalid credentials return 401; /api/** without a token returns 401." }
+  - { id: vendor-07.2, type: api, text: "PROCUREMENT can create, read, update and delete a Vendor; VIEWER can read but gets 403 on create, update and delete." }
+  - { id: vendor-07.3, type: api, text: "A Contract with endDate on or before startDate returns 400; a Contract for a non-existent vendorId returns 400." }
+  - { id: vendor-07.4, type: api, text: "Deleting a Vendor that has a Contract returns 409; after the contract is deleted the vendor can be deleted." }
+  - { id: vendor-07.5, type: api, text: "GET /api/vendors/{id}/contracts returns only that vendor's contracts in the standard paginated shape." }
+  - { id: vendor-07.6, type: api, text: "Vendor list is paginated: page and size parameters are honored and totalElements is correct for 25 created vendors." }
+  - { id: vendor-07.7, type: ui, text: "After login the frontend lists Vendors in a paginated table with sidebar entries for Vendors, Contracts and Contacts." }

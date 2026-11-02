@@ -1,0 +1,38 @@
+id: crm-01
+title: Customer CRM
+domain: crm
+prompt: |
+  Build an internal CRM for a small sales team. It manages Contacts (name, email,
+  company, phone), Deals (title, value, stage, contactId, closeDate) and Notes
+  (body, contactId, authorId, createdAt). Deal stages are LEAD, QUALIFIED, PROPOSAL,
+  WON and LOST; a deal may only move forward one stage at a time (LEAD→QUALIFIED→
+  PROPOSAL→WON), or to LOST from any open stage. Contacts can be searched by name,
+  email or company with a `q` query parameter on the list endpoint. Roles: ADMIN has
+  full access; SALES_REP can read and write contacts and deals, create and edit
+  notes, and export contacts; VIEWER can only read contacts, deals and notes.
+  Every change to a contact, deal or note must be audited. Contacts can be exported
+  as CSV.
+entities:
+  - { name: Contact, fields: [name, email, company, phone] }
+  - { name: Deal, fields: [title, value, stage, contactId, closeDate] }
+  - { name: Note, fields: [body, contactId, authorId, createdAt] }
+capabilities: [authentication.jwt, authorization.rbac, audit.logging, crud.pagination, export.csv, deployment.docker]
+roles:
+  - { name: ADMIN, permissions: ["*"] }
+  - { name: SALES_REP, permissions: ["contact:read", "contact:write", "contact:export", "deal:read", "deal:write", "note:*"] }
+  - { name: VIEWER, permissions: ["contact:read", "deal:read", "note:read"] }
+seeded_users:
+  - { username: admin, password: "Admin#12345", role: ADMIN }
+  - { username: sales_rep, password: "Sales_rep#12345", role: SALES_REP }
+  - { username: viewer, password: "Viewer#12345", role: VIEWER }
+seed_data: []
+acceptance_criteria:
+  - { id: crm-01.1, type: api, text: "Login with valid credentials returns a token; invalid credentials return 401; /api/** without a token returns 401." }
+  - { id: crm-01.2, type: api, text: "SALES_REP can create, read, update and delete a Contact; VIEWER can read but gets 403 on create, update and delete." }
+  - { id: crm-01.3, type: api, text: "Contact list is paginated: page and size parameters are honored and totalElements is correct for 25 created contacts." }
+  - { id: crm-01.4, type: api, text: "Contact list with q=<text> returns only contacts whose name, email or company contains the text, case-insensitively." }
+  - { id: crm-01.5, type: api, text: "A Deal created in stage LEAD can move to QUALIFIED; moving LEAD→PROPOSAL returns 400; moving any open stage to LOST succeeds; a WON or LOST deal cannot change stage." }
+  - { id: crm-01.6, type: api, text: "Creating a Note stores the caller's user id as authorId regardless of any authorId in the request body." }
+  - { id: crm-01.7, type: api, text: "Contact export returns CSV with a header row of the contact field names and one row per contact; VIEWER gets 403." }
+  - { id: crm-01.8, type: api, text: "Each successful create, update and delete on Contact, Deal and Note produces an audit record with the actor, action, entity and entity id; only ADMIN can list audit logs." }
+  - { id: crm-01.9, type: ui, text: "The frontend shows a login page, and after login lists Contacts in a paginated table with sidebar entries for Contacts, Deals and Notes." }
