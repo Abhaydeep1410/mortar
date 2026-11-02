@@ -1,0 +1,23 @@
+id: authentication.jwt
+version: 1.0.0
+category: authentication
+display_name: JWT Authentication
+
+provides:
+  - interface: com.mortar.auth.JwtService
+    description: Issue and validate JWT tokens
+  - interface: com.mortar.auth.SecurityConfigurer
+    description: Spring Security filter chain contribution
+  - capability: authentication.jwt
+
+requires:
+  - capability: database.postgresql
+  - env: [JWT_SECRET, JWT_TTL_MINUTES]
+
+spring_boot: ">=4.0.0 <5.0.0"
+java: ">=21"
+
+conflicts_with:
+  - authentication.oauth2
+
+tags: [auth, jwt, security]

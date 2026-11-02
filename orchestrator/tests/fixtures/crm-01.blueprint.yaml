@@ -1,0 +1,63 @@
+apiVersion: mortar/v1
+kind: Application
+
+metadata:
+  name: customer-crm
+  prompt: "Build a CRM with contacts, deals, notes, and role-based access"
+  timestamp: "2026-11-01T10:00:00Z"
+
+application:
+  type: internal-tool
+  domain: crm
+
+frontend:
+  template: react-admin-v1
+  entities:
+    - name: Contact
+      fields: [name, email, company, phone]
+    - name: Deal
+      fields: [title, value, stage, contactId, closeDate]
+    - name: Note
+      fields: [body, contactId, authorId, createdAt]
+  pages:
+    - { type: list, entity: Contact }
+    - { type: detail, entity: Contact }
+    - { type: list, entity: Deal }
+    - { type: kanban, entity: Deal, groupBy: stage }
+
+backend:
+  framework: spring-boot
+  javaVersion: 21
+  springBootVersion: 4.1.x
+  basePackage: com.example.crm
+
+database:
+  type: postgresql
+  migrations: flyway
+
+capabilities:
+  - authentication.jwt
+  - authorization.rbac
+  - audit.logging
+  - crud.pagination
+  - export.csv
+  - deployment.docker
+
+custom_services:
+  - name: DealPipelineService
+    responsibility: "Move deals between stages, enforce stage transition rules"
+  - name: ContactSearchService
+    responsibility: "Search contacts by name, email or company"
+  - name: NoteService
+    responsibility: "CRUD for notes attached to contacts"
+
+roles:
+  - name: ADMIN
+    permissions: ["*"]
+  - name: SALES_REP
+    permissions: ["contact:read", "contact:write", "contact:export", "deal:read", "deal:write", "note:*"]
+  - name: VIEWER
+    permissions: ["contact:read", "deal:read", "note:read"]
+
+components: []
+uncovered: []
