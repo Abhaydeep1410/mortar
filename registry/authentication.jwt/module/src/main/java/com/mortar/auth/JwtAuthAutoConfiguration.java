@@ -21,7 +21,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
@@ -68,29 +67,15 @@ public class JwtAuthAutoConfiguration {
   }
 
   @Bean
-  @ConditionalOnMissingBean(CorsConfigurationSource.class)
-  CorsConfigurationSource mortarCorsConfigurationSource(JwtProperties properties) {
-    CorsConfiguration cors = new CorsConfiguration();
-    cors.setAllowedOrigins(properties.allowedOrigins());
-    cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    cors.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-    cors.setMaxAge(3600L);
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/api/**", cors);
-    return source;
-  }
-
-  @Bean
   @Order(Ordered.HIGHEST_PRECEDENCE)
   SecurityFilterChain mortarSecurityFilterChain(
       HttpSecurity http,
       JwtService jwtService,
-      CorsConfigurationSource corsConfigurationSource,
+      JwtProperties properties,
       ObjectProvider<SecurityConfigurer> configurers)
       throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
-        // Passed explicitly: Spring Security only finds a CORS bean named "corsConfigurationSource".
-        .cors(cors -> cors.configurationSource(corsConfigurationSource))
+        .cors(cors -> cors.configurationSource(corsSource(properties)))
         .httpBasic(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .logout(AbstractHttpConfigurer::disable)
@@ -112,5 +97,21 @@ public class JwtAuthAutoConfiguration {
                 .anyRequest()
                 .authenticated());
     return http.build();
+  }
+
+  /**
+   * Built inline, deliberately not a bean. Spring MVC registers a {@code HandlerMappingIntrospector},
+   * which is itself a {@code CorsConfigurationSource}; a bean of that type from this module would be
+   * skipped by {@code @ConditionalOnMissingBean} or compete with it, and CORS would silently be off.
+   */
+  private static UrlBasedCorsConfigurationSource corsSource(JwtProperties properties) {
+    CorsConfiguration cors = new CorsConfiguration();
+    cors.setAllowedOrigins(properties.allowedOrigins());
+    cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    cors.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    cors.setMaxAge(3600L);
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/api/**", cors);
+    return source;
   }
 }
