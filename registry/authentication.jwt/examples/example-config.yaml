@@ -1,0 +1,5 @@
+jwtSecretEnv: JWT_SECRET
+ttlMinutes: 60
+issuer: customer-crm
+allowedOrigins:
+  - http://localhost:3000

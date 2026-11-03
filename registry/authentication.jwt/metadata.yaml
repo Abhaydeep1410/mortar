@@ -1,0 +1,22 @@
+id: authentication.jwt
+version: 1.0.0
+category: authentication
+display_name: JWT Authentication
+
+provides:
+  - interface: com.mortar.auth.JwtService
+    description: Issue and validate signed JWTs
+  - interface: com.mortar.auth.SecurityConfigurer
+    description: Hook for adding HttpSecurity rules to the module-owned filter chain
+  - capability: authentication.jwt
+
+requires:
+  - env: [JWT_SECRET]
+
+spring_boot: ">=4.0.0 <5.0.0"
+java: ">=21"
+
+conflicts_with:
+  - authentication.oauth2   # both own the SecurityFilterChain
+
+tags: [auth, jwt, login, token, security, bearer, spring-security]

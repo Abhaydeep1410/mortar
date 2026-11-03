@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mortar.dev/schemas/modules/authentication.jwt/config.json",
+  "title": "authentication.jwt config",
+  "description": "Appears as blueprint.components[].config. The Selector fills it from blueprint values.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "jwtSecretEnv": {
+      "description": "Name of the environment variable holding the signing secret (at least 32 bytes). Maps to mortar.auth.jwt.secret.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "default": "JWT_SECRET"
+    },
+    "ttlMinutes": {
+      "description": "Token lifetime in minutes. Maps to mortar.auth.jwt.ttl-minutes.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1440,
+      "default": 60
+    },
+    "issuer": {
+      "description": "iss claim. Tokens from another issuer are rejected. The Selector defaults it to the blueprint's metadata.name.",
+      "type": "string",
+      "minLength": 1
+    },
+    "allowedOrigins": {
+      "description": "Browser origins allowed by CORS for /api/**. Maps to mortar.auth.jwt.allowed-origins.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "default": ["http://localhost:3000"]
+    }
+  }
+}
