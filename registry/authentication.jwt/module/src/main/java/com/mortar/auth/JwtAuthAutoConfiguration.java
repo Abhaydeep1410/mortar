@@ -11,7 +11,6 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -84,10 +83,14 @@ public class JwtAuthAutoConfiguration {
   @Bean
   @Order(Ordered.HIGHEST_PRECEDENCE)
   SecurityFilterChain mortarSecurityFilterChain(
-      HttpSecurity http, JwtService jwtService, ObjectProvider<SecurityConfigurer> configurers)
+      HttpSecurity http,
+      JwtService jwtService,
+      CorsConfigurationSource corsConfigurationSource,
+      ObjectProvider<SecurityConfigurer> configurers)
       throws Exception {
     http.csrf(AbstractHttpConfigurer::disable)
-        .cors(Customizer.withDefaults())
+        // Passed explicitly: Spring Security only finds a CORS bean named "corsConfigurationSource".
+        .cors(cors -> cors.configurationSource(corsConfigurationSource))
         .httpBasic(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .logout(AbstractHttpConfigurer::disable)

@@ -33,8 +33,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 - Baseline A never run for real (no API key yet). Exit criterion for Week 1 is open until it is.
 - Token counting uses chars/4 unless `tiktoken` is installed (CI installs it). Pin one counter before the benchmark.
-- **`authentication.jwt` has never been compiled or run.** Maven Central is unreachable from the assistant sandbox. Only a javac syntax check was done (no syntax errors; every other error was a missing jar). The first real build is the CI `java` job or the owner's `mvn verify`.
-- Boot 4 imports in `JwtAuthAutoConfiguration` are unverified and the most likely compile errors: `org.springframework.boot.autoconfigure.AutoConfiguration`, `...autoconfigure.condition.ConditionalOnMissingBean`, `...context.properties.bind.DefaultValue`. Also unverified: Security 7 API use and the plain-Spring test context in `JwtSecurityIntegrationTest`. First CI run (2026-11-03) failed because the Boot BOM does not manage `nimbus-jose-jwt`; now pinned to 10.9.1 in the POM. Next CI run is the second build attempt.
+- `authentication.jwt` is only verified by CI (run 2: compiles, 24/26 tests pass). The assistant sandbox cannot reach Maven Central, so never claim it passes without a CI or local `mvn verify` result.
+- **CI run 2 (2026-11-03): the module compiles and 24 of 26 tests pass.** The Boot 4 imports, Security 7 calls and Nimbus usage are confirmed correct. Two CORS tests failed because Spring Security only auto-detects a CORS bean named `corsConfigurationSource`; fixed by passing the source to `.cors(...)` explicitly. Awaiting run 3.
 - `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
 - SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
 - No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
