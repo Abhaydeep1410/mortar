@@ -9,7 +9,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 | Week | Focus | Status |
 |---|---|---|
 | 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
-| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **In progress:** `authentication.jwt` written, Java uncompiled; other two not started |
+| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **In progress:** `authentication.jwt` green on CI (4.1.0); Boot bump to 4.1.1 awaiting CI; other two not started |
 | 3 | Registry part 2 + React template | Not started |
 | 4 | Pipeline + MCP server | Not started |
 | 5 | Validation, repair, **oracles written and frozen** | Not started |
@@ -34,7 +34,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 - Baseline A never run for real (no API key yet). Exit criterion for Week 1 is open until it is.
 - Token counting uses chars/4 unless `tiktoken` is installed (CI installs it). Pin one counter before the benchmark.
 - `authentication.jwt` is only verified by CI (run 2: compiles, 24/26 tests pass). The assistant sandbox cannot reach Maven Central, so never claim it passes without a CI or local `mvn verify` result.
-- **CI runs 2 and 3 (2026-11-03): the module compiles and 24 of 26 tests pass.** Boot 4 imports, Security 7 calls and Nimbus usage are confirmed correct. The 2 CORS tests failed twice. Root cause (read from Spring Framework 7.0.x source): `HandlerMappingIntrospector` is a `CorsConfigurationSource` bean registered by Spring MVC, so our `@ConditionalOnMissingBean(CorsConfigurationSource.class)` bean was skipped, and `DefaultCorsProcessor` returns without headers when the config is null. Fix 3: the CORS source is built inline, not a bean. Awaiting run 4.
+- **CI run 4 (2026-11-03): green on Boot 4.1.0** after the CORS fix (source built inline, not a bean, because MVC's `HandlerMappingIntrospector` is already a `CorsConfigurationSource`). Boot bumped to 4.1.1 afterwards; awaiting its CI run.
 - `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
 - SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
 - No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
@@ -50,9 +50,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. **Owner:** push, then open the GitHub Actions run (or run `mvn -f registry/authentication.jwt/module/pom.xml verify` locally with JDK 21). Send the full error output if it fails; fix compile errors first, then test failures.
-2. After a green build: bump `spring-boot.version` to the latest 4.1.x patch, rebuild, and update D16.
-3. Then `authorization.rbac` (requires jwt; uses `SecurityConfigurer` or method security), then `crud.pagination`.
+1. **Owner:** push the 4.1.1 bump and confirm the `java` job stays green.
+2. Then `authorization.rbac` (requires jwt; uses `SecurityConfigurer` or method security), then `crud.pagination`.
 4. Add `MODULE_REQUIRES` entries in `vocab.py` for any new module that needs another.
 
 ## Open questions for the owner

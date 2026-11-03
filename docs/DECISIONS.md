@@ -32,7 +32,7 @@ Short records of choices that are costly to rediscover. Add one when a decision 
 
 **D15. Module tests live in `tests/java/`, wired by `testSourceDirectory`.** Keeps the registry layout from `module-spec.md` (`module/` = shipped code, `tests/` = proof) while `mvn verify` still runs from `module/`.
 
-**D16. Spring Boot pinned to 4.1.0 in module POMs.** First 4.1 release (2026-06-10). Latest patch unchecked; bump after a green build. Module POMs import the Boot BOM instead of using a parent.
+**D16. Spring Boot pinned to 4.1.1 in module POMs.** 4.1.0 (2026-06-10) built green first; 4.1.1 (2026-08-20) was the latest patch found on 2026-11-03. Module POMs import the Boot BOM instead of using a parent.
 
 **D17. The JWT filter is not a Spring bean.** A `Filter` bean is also registered by the servlet container, so it would run twice. It is created inside the `SecurityFilterChain` bean method instead. Extra rules go through the `SecurityConfigurer` hook, which runs before the base rules (`anyRequest().authenticated()` must come last).
 
