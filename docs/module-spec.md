@@ -61,6 +61,7 @@ A JSON Schema (draft 2020-12) describing the module's config block as it appears
 
 - `module/` is a standalone Maven module with groupId `com.mortar`, built with Maven 3.9+ against Java 21 and Spring Boot 4.1.x.
 - `tests/` contains JUnit 5 tests (Testcontainers for PostgreSQL where needed) that run with `mvn verify` from the module directory with no other module present. Isolation is a CI check.
+  The module's `pom.xml` sets `<testSourceDirectory>${project.basedir}/../tests/java</testSourceDirectory>` so Maven finds them; Java tests live under `tests/java/`.
 - Modules are **opinionated wrappers** around Spring Security, Spring Data and similar libraries, not reimplementations.
 
 ## 6. Reuse-violation signatures

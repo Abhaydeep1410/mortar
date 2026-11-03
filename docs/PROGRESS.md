@@ -2,14 +2,14 @@
 
 Single source of truth for "where are we". Update at the end of every task. Keep it short; history lives in `git log`.
 
-**Last updated:** 2026-11-02 · **Current phase:** Week 2 of 9 (registry part 1) · **Tests:** 171 passing (`cd orchestrator && python -m pytest -q`)
+**Last updated:** 2026-11-03 · **Current phase:** Week 2 of 9 (registry part 1) · **Python tests:** 184 passing (`cd orchestrator && python -m pytest -q`)
 
 ## Plan status (from `PROJECT_CONTEXT.md` §16)
 
 | Week | Focus | Status |
 |---|---|---|
 | 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
-| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | Not started |
+| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **In progress:** `authentication.jwt` written, Java uncompiled; other two not started |
 | 3 | Registry part 2 + React template | Not started |
 | 4 | Pipeline + MCP server | Not started |
 | 5 | Validation, repair, **oracles written and frozen** | Not started |
@@ -25,13 +25,19 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 - Coverage ablation logic (k = 0/2/4/6, primary and alternate orders): `orchestrator/mortar/engine/coverage.py`.
 - `SKILL.md` budget checker: `tools/check_skill_budget.py`.
 - Baseline A (`evaluator/baselines/single_agent.py`) with run-record invariants; tested with a fake model.
-- CI workflow (`.github/workflows/ci.yml`): tests, example blueprint, SKILL.md budgets.
+- CI workflow (`.github/workflows/ci.yml`): Python tests, example blueprint, SKILL.md budgets, and a `java` job that runs `mvn verify` on every `registry/*/module`.
+- `registry/authentication.jwt/`: Java source (token service, filter, login controller, auto-configuration), JUnit tests, `metadata.yaml`, `SKILL.md` (about 311 tokens by an upper-bound count), `config-schema.json`, example config.
+- `orchestrator/tests/test_registry.py`: checks every module's layout, metadata, SKILL.md, config schema, example config, provided interfaces and POM against the spec (no Java needed).
 
 ## Not done / known gaps
 
 - Baseline A never run for real (no API key yet). Exit criterion for Week 1 is open until it is.
 - Token counting uses chars/4 unless `tiktoken` is installed (CI installs it). Pin one counter before the benchmark.
-- No registry modules, oracles, pipeline, MCP server, React template, or Baselines B/C.
+- **`authentication.jwt` has never been compiled or run.** Maven Central is unreachable from the assistant sandbox. Only a javac syntax check was done (no syntax errors; every other error was a missing jar). The first real build is the CI `java` job or the owner's `mvn verify`.
+- Boot 4 imports in `JwtAuthAutoConfiguration` are unverified and the most likely compile errors: `org.springframework.boot.autoconfigure.AutoConfiguration`, `...autoconfigure.condition.ConditionalOnMissingBean`, `...context.properties.bind.DefaultValue`. Also unverified: Security 7 API use, `nimbus-jose-jwt` being managed by the Boot BOM, and the plain-Spring test context in `JwtSecurityIntegrationTest`.
+- `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
+- SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
+- No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
 - Nothing yet checks `module/` Java against `metadata.yaml`; `owns:` field for reuse-violation detection is specified but not in the schema (Week 5).
 - Name `mortar` not checked for availability on PyPI.
 
@@ -44,10 +50,10 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. Owner: confirm `java -version` is 21 and `mvn -v` is 3.9+ locally. Confirm the current Spring Boot 4.1.x patch (web search; the sandbox cannot resolve it from Maven).
-2. Build `registry/authentication.jwt/` per `docs/module-spec.md`: `module/` (Maven), `tests/`, `metadata.yaml`, `config-schema.json`, `SKILL.md` (≤400 tokens), `examples/example-config.yaml`.
-3. Then `authorization.rbac` (requires jwt), then `crud.pagination`.
-4. Add a Python test that validates every `registry/*/metadata.yaml` against `schemas/module-metadata.schema.json` and every `SKILL.md` against the budget checker.
+1. **Owner:** push, then open the GitHub Actions run (or run `mvn -f registry/authentication.jwt/module/pom.xml verify` locally with JDK 21). Send the full error output if it fails; fix compile errors first, then test failures.
+2. After a green build: bump `spring-boot.version` to the latest 4.1.x patch, rebuild, and update D16.
+3. Then `authorization.rbac` (requires jwt; uses `SecurityConfigurer` or method security), then `crud.pagination`.
+4. Add `MODULE_REQUIRES` entries in `vocab.py` for any new module that needs another.
 
 ## Open questions for the owner
 

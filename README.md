@@ -20,7 +20,8 @@ The full contract is in [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
 | Coverage ablation logic (k = 0/2/4/6) | `orchestrator/mortar/engine/coverage.py` | implemented, tested |
 | `SKILL.md` budget checker | `tools/check_skill_budget.py` | implemented, tested |
 | Baseline A (single agent) | `evaluator/baselines/single_agent.py` | implemented, tested with a fake model; **not yet run against a real model** |
-| Oracles, registry modules, pipeline, MCP server | | not started |
+| Registry module `authentication.jwt` | `registry/authentication.jwt/` | written; **Java not yet compiled** (CI job `java` is the first build) |
+| Oracles, other registry modules, pipeline, MCP server | | not started |
 
 ## Try it
 
