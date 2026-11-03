@@ -16,6 +16,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- Pinned to the first 4.1 release; bump to the latest 4.1.x patch after checking it builds. -->
     <spring-boot.version>4.1.0</spring-boot.version>
+    <!-- Not managed by the Spring Boot 4.1 BOM (CI error, 2026-11-03), so pinned here. Latest seen: 10.9.1. -->
+    <nimbus-jose-jwt.version>10.9.1</nimbus-jose-jwt.version>
   </properties>
 
   <dependencyManagement>
@@ -42,6 +44,7 @@
     <dependency>
       <groupId>com.nimbusds</groupId>
       <artifactId>nimbus-jose-jwt</artifactId>
+      <version>${nimbus-jose-jwt.version}</version>
     </dependency>
 
     <dependency>

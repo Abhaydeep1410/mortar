@@ -37,3 +37,5 @@ Short records of choices that are costly to rediscover. Add one when a decision 
 **D17. The JWT filter is not a Spring bean.** A `Filter` bean is also registered by the servlet container, so it would run twice. It is created inside the `SecurityFilterChain` bean method instead. Extra rules go through the `SecurityConfigurer` hook, which runs before the base rules (`anyRequest().authenticated()` must come last).
 
 **D18. CORS lives in the JWT module for now.** The frontend (port 3000) calls the backend (port 8080) from a browser, so the first module that touches the filter chain must allow it. Origins are configurable (`allowed-origins`). Revisit when `deployment.docker` exists.
+
+**D19. `nimbus-jose-jwt` is pinned in the module POM (10.9.1).** The Spring Boot 4.1 BOM does not manage it, which CI showed as a missing-version error. Versions 10.9 and 10.9.1 were seen in dependency-bump PRs (May and July 2026); not checked on Maven Central directly.
