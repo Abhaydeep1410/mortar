@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mortar.dev/schemas/modules/authorization.rbac/config.json",
+  "title": "authorization.rbac config",
+  "description": "Appears as blueprint.components[].config. The Selector fills it from blueprint entities and roles. Maps to mortar.auth.rbac.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["resources", "roles"],
+  "properties": {
+    "resources": {
+      "description": "One entry per protected entity: the URL segment under /api/ and the resource name used in permissions.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "name"],
+        "properties": {
+          "path": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+        }
+      }
+    },
+    "roles": {
+      "description": "Same shape as the blueprint's roles.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "permissions"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+          "permissions": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "pattern": "^(\\*|[a-z][a-z0-9_]*:(read|write|delete|export|\\*))$" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+resources:
+  - { path: contacts, name: contact }
+  - { path: deals, name: deal }
+  - { path: notes, name: note }
+roles:
+  - { name: ADMIN, permissions: ["*"] }
+  - { name: SALES_REP, permissions: ["contact:read", "contact:write", "contact:export", "deal:read", "deal:write", "note:*"] }
+  - { name: VIEWER, permissions: ["contact:read", "deal:read", "note:read"] }

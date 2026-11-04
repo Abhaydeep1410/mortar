@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.mortar</groupId>
+  <artifactId>rbac-authorization</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+  <name>Mortar RBAC Authorization</name>
+  <description>Role and permission checks on /api/** for Spring Boot 4 (Mortar registry module authorization.rbac). Requires authentication.jwt.</description>
+
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Keep in step with authentication.jwt. -->
+    <spring-boot.version>4.1.1</spring-boot.version>
+    <jwt-auth.version>1.0.0</jwt-auth.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- Not on Maven Central: run "mvn install" on authentication.jwt first (CI does, in directory order). -->
+    <dependency>
+      <groupId>com.mortar</groupId>
+      <artifactId>jwt-auth</artifactId>
+      <version>${jwt-auth.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <testSourceDirectory>${project.basedir}/../tests/java</testSourceDirectory>
+  </build>
+</project>

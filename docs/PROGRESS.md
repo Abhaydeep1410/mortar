@@ -2,14 +2,14 @@
 
 Single source of truth for "where are we". Update at the end of every task. Keep it short; history lives in `git log`.
 
-**Last updated:** 2026-11-03 · **Current phase:** Week 2 of 9 (registry part 1) · **Python tests:** 184 passing (`cd orchestrator && python -m pytest -q`)
+**Last updated:** 2026-11-03 · **Current phase:** Week 2 of 9 (registry part 1) · **Python tests:** 196 passing (`cd orchestrator && python -m pytest -q`)
 
 ## Plan status (from `PROJECT_CONTEXT.md` §16)
 
 | Week | Focus | Status |
 |---|---|---|
 | 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
-| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **In progress:** `authentication.jwt` green on CI (4.1.0); Boot bump to 4.1.1 awaiting CI; other two not started |
+| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **In progress:** `authentication.jwt` green on CI (Boot 4.1.1); `authorization.rbac` written, Java unverified; `crud.pagination` not started |
 | 3 | Registry part 2 + React template | Not started |
 | 4 | Pipeline + MCP server | Not started |
 | 5 | Validation, repair, **oracles written and frozen** | Not started |
@@ -34,7 +34,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 - Baseline A never run for real (no API key yet). Exit criterion for Week 1 is open until it is.
 - Token counting uses chars/4 unless `tiktoken` is installed (CI installs it). Pin one counter before the benchmark.
 - `authentication.jwt` is only verified by CI (run 2: compiles, 24/26 tests pass). The assistant sandbox cannot reach Maven Central, so never claim it passes without a CI or local `mvn verify` result.
-- **CI run 4 (2026-11-03): green on Boot 4.1.0** after the CORS fix (source built inline, not a bean, because MVC's `HandlerMappingIntrospector` is already a `CorsConfigurationSource`). Boot bumped to 4.1.1 afterwards; awaiting its CI run.
+- **`authentication.jwt` is green on CI (Boot 4.1.1, 26 tests).** The CORS bug was that MVC's `HandlerMappingIntrospector` is already a `CorsConfigurationSource`, so the CORS source is now built inline, not a bean (D18).
+- **`authorization.rbac` is only structurally verified** (Python registry tests pass). Its Java and 2 test classes have never been compiled; CI is the first real build. CI now runs `mvn install` per module so rbac can resolve `com.mortar:jwt-auth` (D19).
 - `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
 - SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
 - No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
@@ -50,8 +51,9 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. **Owner:** push the 4.1.1 bump and confirm the `java` job stays green.
-2. Then `authorization.rbac` (requires jwt; uses `SecurityConfigurer` or method security), then `crud.pagination`.
+1. **Owner:** push `authorization.rbac` and send the `java` job result (compile errors first, then test failures).
+2. Then `crud.pagination`.
+3. Locally, run `mvn install` on `authentication.jwt` before building `authorization.rbac`.
 4. Add `MODULE_REQUIRES` entries in `vocab.py` for any new module that needs another.
 
 ## Open questions for the owner

@@ -32,7 +32,7 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - name: Build and test every registry module
+      - name: Build, test and install every registry module (directory order; rbac needs jwt installed)
         shell: bash
         run: |
           shopt -s nullglob
@@ -40,6 +40,6 @@ jobs:
           if [ ${#poms[@]} -eq 0 ]; then echo "no modules yet"; exit 0; fi
           for pom in "${poms[@]}"; do
             echo "::group::$pom"
-            mvn -B -ntp -f "$pom" verify
+            mvn -B -ntp -f "$pom" install
             echo "::endgroup::"
           done
