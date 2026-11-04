@@ -288,7 +288,7 @@ mortar.auth.jwt.ttl-minutes: ${JWT_TTL_MINUTES:60}
 |---|---|---|---|
 | 1 | `authentication.jwt` | auth | JwtService, SecurityFilterChain |
 | 2 | `authorization.rbac` | auth | `@RequiresPermission`, permission evaluator |
-| 3 | `audit.logging` | observability | `@Audited`, AuditLog entity, async writer |
+| 3 | `audit.logging` | observability | Request-level audit filter, AuditLog entity, `GET /api/audit-logs` (synchronous writer; see D21) |
 | 4 | `crud.pagination` | data | Generic `BaseController<T>`, `Pageable` helpers, `BaseRepository` |
 | 5 | `export.csv` | data | `@Exportable`, `CsvExportController` |
 | 6 | `deployment.docker` | deployment | Multi-stage Dockerfile, docker-compose.yml, Flyway baseline, Actuator health config |
