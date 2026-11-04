@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mortar.dev/schemas/modules/audit.logging/config.json",
+  "title": "audit.logging config",
+  "description": "Appears as blueprint.components[].config. The Selector fills entities from the writable blueprint entities. Maps to mortar.audit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["entities"],
+  "properties": {
+    "entities": {
+      "description": "Entities whose writes are recorded: URL segment under /api/ and the entity name stored. Omit read-only entities.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "name"],
+        "properties": {
+          "path": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "name": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+        }
+      }
+    },
+    "adminRole": {
+      "description": "The only role that may read /api/audit-logs, without the ROLE_ prefix. Maps to mortar.audit.admin-role.",
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]*$",
+      "default": "ADMIN"
+    }
+  }
+}

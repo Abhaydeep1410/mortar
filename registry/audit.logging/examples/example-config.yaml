@@ -1,0 +1,5 @@
+adminRole: ADMIN
+entities:
+  - { path: contacts, name: contact }
+  - { path: deals, name: deal }
+  - { path: notes, name: note }

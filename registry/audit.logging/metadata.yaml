@@ -1,0 +1,21 @@
+id: audit.logging
+version: 1.0.0
+category: observability
+display_name: Audit Logging
+
+provides:
+  - interface: com.mortar.audit.AuditLog
+    description: Audit record entity (actor, action, entity, entityId, timestamp)
+  - interface: com.mortar.audit.AuditLogRepository
+    description: Spring Data repository for audit records
+  - capability: audit.logging
+
+requires:
+  - capability: authentication.jwt
+
+spring_boot: ">=4.0.0 <5.0.0"
+java: ">=21"
+
+conflicts_with: []
+
+tags: [audit, logging, history, compliance, who-did-what, jpa, spring-security]
