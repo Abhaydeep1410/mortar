@@ -100,7 +100,7 @@ class RbacSecurityIntegrationTest {
     }
 
     @GetMapping("/api/contacts/{id}")
-    public String oneContact(@PathVariable String id) {
+    public String oneContact(@PathVariable("id") String id) {
       return "one";
     }
 
@@ -110,12 +110,12 @@ class RbacSecurityIntegrationTest {
     }
 
     @PutMapping("/api/contacts/{id}")
-    public String updateContact(@PathVariable String id) {
+    public String updateContact(@PathVariable("id") String id) {
       return "updated";
     }
 
     @DeleteMapping("/api/contacts/{id}")
-    public String deleteContact(@PathVariable String id) {
+    public String deleteContact(@PathVariable("id") String id) {
       return "deleted";
     }
 
@@ -130,7 +130,7 @@ class RbacSecurityIntegrationTest {
     }
 
     @DeleteMapping("/api/notes/{id}")
-    public String deleteNote(@PathVariable String id) {
+    public String deleteNote(@PathVariable("id") String id) {
       return "note-deleted";
     }
 

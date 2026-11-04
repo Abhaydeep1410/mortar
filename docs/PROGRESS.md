@@ -9,7 +9,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 | Week | Focus | Status |
 |---|---|---|
 | 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
-| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **In progress:** `authentication.jwt` green on CI (Boot 4.1.1); `authorization.rbac` written, Java unverified; `crud.pagination` not started |
+| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **In progress:** `authentication.jwt` green on CI (Boot 4.1.1); `authorization.rbac` compiles on CI; 11 of 15 tests passed, 4 test-controller errors fixed, awaiting rerun; `crud.pagination` not started |
 | 3 | Registry part 2 + React template | Not started |
 | 4 | Pipeline + MCP server | Not started |
 | 5 | Validation, repair, **oracles written and frozen** | Not started |
@@ -35,7 +35,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 - Token counting uses chars/4 unless `tiktoken` is installed (CI installs it). Pin one counter before the benchmark.
 - `authentication.jwt` is only verified by CI (run 2: compiles, 24/26 tests pass). The assistant sandbox cannot reach Maven Central, so never claim it passes without a CI or local `mvn verify` result.
 - **`authentication.jwt` is green on CI (Boot 4.1.1, 26 tests).** The CORS bug was that MVC's `HandlerMappingIntrospector` is already a `CorsConfigurationSource`, so the CORS source is now built inline, not a bean (D18).
-- **`authorization.rbac` is only structurally verified** (Python registry tests pass). Its Java and 2 test classes have never been compiled; CI is the first real build. CI now runs `mvn install` per module so rbac can resolve `com.mortar:jwt-auth` (D19).
+- **`authorization.rbac` CI run 1 (2026-11-04): compiles; 11 of 15 tests pass.** The 4 errors were in the test controller (`@PathVariable` without a name; module POMs do not use the Boot parent, so `-parameters` is off). Fixed with `@PathVariable("id")`. The policy unit tests all pass; the integration matrix is unproven until the rerun. CI runs `mvn install` per module so rbac can resolve `com.mortar:jwt-auth` (D19).
 - `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
 - SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
 - No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
