@@ -147,6 +147,8 @@ class CrudApiIntegrationTest {
     long id = ((Number) JsonPath.read(result.andReturn().getResponse().getContentAsString(), "$.id")).longValue();
 
     org.assertj.core.api.Assertions.assertThat(id).isNotEqualTo(999L);
+    org.assertj.core.api.Assertions.assertThat(result.andReturn().getResponse().getHeader("Location"))
+        .endsWith("/api/contacts/" + id);
     mvc.perform(get("/api/contacts/" + id)).andExpect(status().isOk()).andExpect(jsonPath("$.company").value("Initech"));
   }
 

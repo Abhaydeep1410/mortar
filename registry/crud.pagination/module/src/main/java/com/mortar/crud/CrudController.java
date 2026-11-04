@@ -2,6 +2,7 @@ package com.mortar.crud;
 
 import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
  * REST CRUD for one JPA entity with a numeric {@code Long id}. Subclass it, add
@@ -37,7 +39,7 @@ import org.springframework.web.server.ResponseStatusException;
  * }</pre>
  *
  * <p>Endpoints: {@code GET} (paged list: {@code page}, {@code size}, {@code sort=field,asc|desc},
- * {@code q}), {@code GET /{id}}, {@code POST} (201), {@code PUT /{id}} (200), {@code DELETE /{id}}
+ * {@code q}), {@code GET /{id}}, {@code POST} (201 with a {@code Location} header), {@code PUT /{id}} (200), {@code DELETE /{id}}
  * (204). Unknown id is 404; bad input is 400 with a {@code message}. Override {@link #beforeSave}
  * for app rules such as stamping the author.
  *
@@ -75,7 +77,10 @@ public abstract class CrudController<T, R extends JpaRepository<T, Long> & JpaSp
     requireWritable();
     setId(body, null);
     beforeSave(body, true);
-    return ResponseEntity.status(HttpStatus.CREATED).body(repository.save(body));
+    T saved = repository.save(body);
+    Object id = PropertyAccessorFactory.forBeanPropertyAccess(saved).getPropertyValue("id");
+    URI location = ServletUriComponentsBuilder.fromCurrentRequestUri().path("/{id}").buildAndExpand(id).toUri();
+    return ResponseEntity.created(location).body(saved);
   }
 
   @PutMapping("/{id}")

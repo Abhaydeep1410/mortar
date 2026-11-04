@@ -6,7 +6,7 @@ description: Generic REST CRUD with paging, sorting and text search for Spring B
 # CRUD and Pagination
 
 ## Provides
-- `CrudController<T, R>`: `GET /` paged list, `GET /{id}`, `POST` 201, `PUT /{id}` 200, `DELETE /{id}` 204; unknown id 404
+- `CrudController<T, R>`: `GET /` paged list, `GET /{id}`, `POST` 201 + `Location`, `PUT /{id}` 200, `DELETE /{id}` 204; unknown id 404
 - List params `page` (from 0), `size`, `sort=field,asc|desc` (repeatable), `q` (case-insensitive contains over search fields); returns `{content,totalElements,page,size}`
 - Bad input and validation errors: 400 `{message}`. Unlisted sort fields are rejected
 - `CrudSettings.of(sortable, searchable)`, `.asReadOnly()` for 405 on writes; hook `beforeSave(entity, creating)`
