@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mortar.dev/schemas/modules/crud.pagination/config.json",
+  "title": "crud.pagination config",
+  "description": "Appears as blueprint.components[].config. Maps to mortar.crud. Per-entity choices (sortable and searchable fields) are code in the controller subclass, not config.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defaultPageSize": {
+      "description": "Page size when a request has no size. Maps to mortar.crud.default-page-size.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000,
+      "default": 20
+    },
+    "maxPageSize": {
+      "description": "Largest accepted size; larger values get 400. Must be at least defaultPageSize. Maps to mortar.crud.max-page-size.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000,
+      "default": 100
+    }
+  }
+}

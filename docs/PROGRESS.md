@@ -2,14 +2,14 @@
 
 Single source of truth for "where are we". Update at the end of every task. Keep it short; history lives in `git log`.
 
-**Last updated:** 2026-11-03 · **Current phase:** Week 2 of 9 (registry part 1) · **Python tests:** 196 passing (`cd orchestrator && python -m pytest -q`)
+**Last updated:** 2026-11-03 · **Current phase:** Week 2 of 9 (registry part 1) · **Python tests:** 208 passing (`cd orchestrator && python -m pytest -q`)
 
 ## Plan status (from `PROJECT_CONTEXT.md` §16)
 
 | Week | Focus | Status |
 |---|---|---|
 | 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
-| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **In progress:** `authentication.jwt` green on CI (Boot 4.1.1); `authorization.rbac` compiles on CI; 11 of 15 tests passed, 4 test-controller errors fixed, awaiting rerun; `crud.pagination` not started |
+| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **In progress:** `authentication.jwt` and `authorization.rbac` green on CI (Boot 4.1.1); `crud.pagination` written, Java unverified |
 | 3 | Registry part 2 + React template | Not started |
 | 4 | Pipeline + MCP server | Not started |
 | 5 | Validation, repair, **oracles written and frozen** | Not started |
@@ -35,7 +35,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 - Token counting uses chars/4 unless `tiktoken` is installed (CI installs it). Pin one counter before the benchmark.
 - `authentication.jwt` is only verified by CI (run 2: compiles, 24/26 tests pass). The assistant sandbox cannot reach Maven Central, so never claim it passes without a CI or local `mvn verify` result.
 - **`authentication.jwt` is green on CI (Boot 4.1.1, 26 tests).** The CORS bug was that MVC's `HandlerMappingIntrospector` is already a `CorsConfigurationSource`, so the CORS source is now built inline, not a bean (D18).
-- **`authorization.rbac` CI run 1 (2026-11-04): compiles; 11 of 15 tests pass.** The 4 errors were in the test controller (`@PathVariable` without a name; module POMs do not use the Boot parent, so `-parameters` is off). Fixed with `@PathVariable("id")`. The policy unit tests all pass; the integration matrix is unproven until the rerun. CI runs `mvn install` per module so rbac can resolve `com.mortar:jwt-auth` (D19).
+- **`authentication.jwt` and `authorization.rbac` are green on CI (2026-11-04, Boot 4.1.1).** RBAC needed `@PathVariable("id")` in its test controller because module POMs do not use the Boot parent (`-parameters` is off); `crud.pagination` sets `maven.compiler.parameters` for the same reason. CI runs `mvn install` per module so rbac can resolve `com.mortar:jwt-auth` (D19).
+- **`crud.pagination` is only structurally verified** (Python registry tests, javac syntax pass). Its JPA-on-H2 integration test is the riskiest Boot 4 area so far (Hibernate 7, Spring Data JPA 4); expect CI iterations.
 - `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
 - SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
 - No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
@@ -51,8 +52,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. **Owner:** push `authorization.rbac` and send the `java` job result (compile errors first, then test failures).
-2. Then `crud.pagination`.
+1. **Owner:** push `crud.pagination` and send the `java` job result (compile errors first, then test failures).
+2. After green: Week 2 is done. Update the plan table, then start Week 3 (registry part 2: `audit.logging`, `export.csv`, `deployment.docker`, plus the React template).
 3. Locally, run `mvn install` on `authentication.jwt` before building `authorization.rbac`.
 4. Add `MODULE_REQUIRES` entries in `vocab.py` for any new module that needs another.
 

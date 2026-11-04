@@ -1,0 +1,20 @@
+id: crud.pagination
+version: 1.0.0
+category: data
+display_name: CRUD and Pagination
+
+provides:
+  - interface: com.mortar.crud.CrudController
+    description: Generic REST controller (list, get, create, update, delete) for one JPA entity
+  - interface: com.mortar.crud.PageResponse
+    description: List response shape {content, totalElements, page, size}
+  - capability: crud.pagination
+
+requires: []
+
+spring_boot: ">=4.0.0 <5.0.0"
+java: ">=21"
+
+conflicts_with: []
+
+tags: [crud, rest, pagination, paging, sorting, search, jpa, spring-data]
