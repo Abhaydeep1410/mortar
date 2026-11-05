@@ -1,0 +1,18 @@
+id: export.csv
+version: 1.0.0
+category: data
+display_name: CSV Export
+
+provides:
+  - interface: com.mortar.csv.CsvExportController
+    description: GET <base>/export.csv for one JPA entity, streamed in batches as RFC 4180 CSV
+  - capability: export.csv
+
+requires: []
+
+spring_boot: ">=4.0.0 <5.0.0"
+java: ">=21"
+
+conflicts_with: []
+
+tags: [export, csv, download, report, jpa]

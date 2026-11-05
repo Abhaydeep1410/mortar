@@ -10,7 +10,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 |---|---|---|
 | 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
 | 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **Done:** all three green on CI (Boot 4.1.1) |
-| 3 | Registry part 2 + React template | **In progress:** `audit.logging` written, Java unverified; `export.csv`, `deployment.docker`, React template not started |
+| 3 | Registry part 2 + React template | **In progress:** `audit.logging` green on CI; `export.csv` written, Java unverified; `deployment.docker`, React template not started |
 | 4 | Pipeline + MCP server | Not started |
 | 5 | Validation, repair, **oracles written and frozen** | Not started |
 | 6 | Baselines B and C, 1-seed pilot, pin model | Not started |
@@ -37,7 +37,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 - **`authentication.jwt` is green on CI (Boot 4.1.1, 26 tests).** The CORS bug was that MVC's `HandlerMappingIntrospector` is already a `CorsConfigurationSource`, so the CORS source is now built inline, not a bean (D18).
 - **`authentication.jwt` and `authorization.rbac` are green on CI (2026-11-04, Boot 4.1.1).** RBAC needed `@PathVariable("id")` in its test controller because module POMs do not use the Boot parent (`-parameters` is off); `crud.pagination` sets `maven.compiler.parameters` for the same reason. CI runs `mvn install` per module so rbac can resolve `com.mortar:jwt-auth` (D19).
 - **`crud.pagination` is green on CI (2026-11-04).** JPA on H2 with Hibernate 7 and Spring Data JPA 4 worked first time.
-- **`audit.logging` is only structurally verified** (Python registry tests, javac syntax pass). Riskiest parts: the filter placed after `AuthorizationFilter` in the chain, and `@AutoConfigurationPackage` finding the entity and repository.
+- **`audit.logging` is green on CI (2026-11-05).** A first run failed only because CI built modules alphabetically and `audit.logging` sorted before `authentication.jwt`; CI now builds jwt first (D19).
+- **`export.csv` is only structurally verified** (Python registry tests, javac syntax pass); its H2 integration test is untested on CI.
 - `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
 - SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
 - No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
@@ -53,9 +54,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. **Owner:** push `audit.logging` (it also changes `crud.pagination`: POST now returns a `Location` header) and send the `java` job result.
-2. Then `export.csv`, `deployment.docker` (must own the `audit_log` migration, D21), then the React Admin template.
-3. Update this table after each module is green on CI.
+1. **Owner:** push `export.csv` and send the `java` job result.
+2. Then `deployment.docker` (must own the `audit_log` migration, D21), then the React Admin template.
 3. Locally, run `mvn install` on `authentication.jwt` before building `authorization.rbac`.
 4. Add `MODULE_REQUIRES` entries in `vocab.py` for any new module that needs another.
 
