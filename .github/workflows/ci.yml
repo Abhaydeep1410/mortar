@@ -32,12 +32,17 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - name: Build, test and install every registry module (directory order; rbac needs jwt installed)
+      - name: Build, test and install every registry module (authentication.jwt first; others depend on it)
         shell: bash
         run: |
           shopt -s nullglob
-          poms=(registry/*/module/pom.xml)
-          if [ ${#poms[@]} -eq 0 ]; then echo "no modules yet"; exit 0; fi
+          all=(registry/*/module/pom.xml)
+          if [ ${#all[@]} -eq 0 ]; then echo "no modules yet"; exit 0; fi
+          base=registry/authentication.jwt/module/pom.xml
+          poms=("$base")
+          for pom in "${all[@]}"; do
+            if [ "$pom" != "$base" ]; then poms+=("$pom"); fi
+          done
           for pom in "${poms[@]}"; do
             echo "::group::$pom"
             mvn -B -ntp -f "$pom" install
