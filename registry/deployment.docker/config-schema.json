@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mortar.dev/schemas/modules/deployment.docker/config.json",
+  "title": "deployment.docker config",
+  "description": "Appears as blueprint.components[].config. The Assembler substitutes these into .env.example; the ports (8080, 3000) are fixed by the application contract.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "appName": {
+      "description": "Compose project name. The Selector defaults it to the blueprint's metadata.name.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,40}$",
+      "default": "app"
+    },
+    "databaseName": {
+      "description": "PostgreSQL database name.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,62}$",
+      "default": "app"
+    },
+    "databaseUser": {
+      "description": "PostgreSQL user name.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,62}$",
+      "default": "app"
+    }
+  }
+}

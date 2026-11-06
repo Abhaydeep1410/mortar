@@ -1,0 +1,21 @@
+id: deployment.docker
+version: 1.0.0
+category: deployment
+display_name: Docker Deployment
+
+provides:
+  - capability: deployment.docker
+    description: Dockerfiles and docker-compose.yml that start database, backend (8080) and frontend (3000)
+  - capability: database.flyway
+    description: Flyway baseline migration that creates the audit_log table
+  - capability: observability.actuator
+    description: Health-only Actuator settings; GET /actuator/health answers {"status":"UP"}
+
+requires: []
+
+spring_boot: ">=4.0.0 <5.0.0"
+java: ">=21"
+
+conflicts_with: []
+
+tags: [docker, compose, deployment, flyway, migration, actuator, health, postgres, nginx]
