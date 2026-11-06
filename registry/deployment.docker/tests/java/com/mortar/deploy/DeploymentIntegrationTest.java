@@ -61,7 +61,7 @@ class DeploymentIntegrationTest {
   @Test
   void flywayAppliedTheBaselineMigration() {
     List<Map<String, Object>> history =
-        jdbc.queryForList("select version, success from flyway_schema_history order by installed_rank");
+        jdbc.queryForList("select \"version\", \"success\" from \"flyway_schema_history\" order by \"installed_rank\"");
 
     assertThat(history).hasSize(1);
     assertThat(history.get(0).get("version")).isEqualTo("0.1");
