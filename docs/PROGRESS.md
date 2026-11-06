@@ -2,7 +2,7 @@
 
 Single source of truth for "where are we". Update at the end of every task. Keep it short; history lives in `git log`.
 
-**Last updated:** 2026-11-03 · **Current phase:** Week 3 of 9 (registry part 2 + React template) · **Python tests:** 220 passing (`cd orchestrator && python -m pytest -q`)
+**Last updated:** 2026-11-03 · **Current phase:** Week 3 of 9 (registry part 2 + React template) · **Python tests:** 258 passing (`cd orchestrator && python -m pytest -q`)
 
 ## Plan status (from `PROJECT_CONTEXT.md` §16)
 
@@ -10,7 +10,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 |---|---|---|
 | 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
 | 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **Done:** all three green on CI (Boot 4.1.1) |
-| 3 | Registry part 2 + React template | **In progress:** `audit.logging` green on CI; `export.csv` written, Java unverified; `deployment.docker`, React template not started |
+| 3 | Registry part 2 + React template | **In progress:** `audit.logging` and `export.csv` green on CI; `deployment.docker` written, Java unverified; React template not started |
 | 4 | Pipeline + MCP server | Not started |
 | 5 | Validation, repair, **oracles written and frozen** | Not started |
 | 6 | Baselines B and C, 1-seed pilot, pin model | Not started |
@@ -38,7 +38,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 - **`authentication.jwt` and `authorization.rbac` are green on CI (2026-11-04, Boot 4.1.1).** RBAC needed `@PathVariable("id")` in its test controller because module POMs do not use the Boot parent (`-parameters` is off); `crud.pagination` sets `maven.compiler.parameters` for the same reason. CI runs `mvn install` per module so rbac can resolve `com.mortar:jwt-auth` (D19).
 - **`crud.pagination` is green on CI (2026-11-04).** JPA on H2 with Hibernate 7 and Spring Data JPA 4 worked first time.
 - **`audit.logging` is green on CI (2026-11-05).** A first run failed only because CI built modules alphabetically and `audit.logging` sorted before `authentication.jwt`; CI now builds jwt first (D19).
-- **`export.csv` is only structurally verified** (Python registry tests, javac syntax pass); its H2 integration test is untested on CI.
+- **`export.csv` is green on CI (2026-11-06).**
+- **`deployment.docker` is only partly verified.** Python checks pass, including `docker compose config` on the Compose file and a check that the Flyway baseline matches the `AuditLog` entity. Not run anywhere: its Java test (Flyway on H2, `/actuator/health`), `docker compose up`, and both image builds. The backend image cannot build a generated app until the Assembler vendors the `com.mortar:*` module jars into `backend/` (D22).
 - `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
 - SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
 - No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
@@ -54,8 +55,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. **Owner:** push `export.csv` and send the `java` job result.
-2. Then `deployment.docker` (must own the `audit_log` migration, D21), then the React Admin template.
+1. **Owner:** push `deployment.docker` and send the `java` job result.
+2. Then the React Admin template (`templates/react-admin-v1/`): it must provide `package.json`, `package-lock.json`, `npm run build` to `dist/`, and read `VITE_API_URL` (the frontend Dockerfile depends on all three).
 3. Locally, run `mvn install` on `authentication.jwt` before building `authorization.rbac`.
 4. Add `MODULE_REQUIRES` entries in `vocab.py` for any new module that needs another.
 
