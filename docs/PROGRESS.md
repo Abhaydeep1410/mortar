@@ -2,7 +2,7 @@
 
 Single source of truth for "where are we". Update at the end of every task. Keep it short; history lives in `git log`.
 
-**Last updated:** 2026-11-03 · **Current phase:** Week 3 of 9 (registry part 2 + React template) · **Python tests:** 258 passing (`cd orchestrator && python -m pytest -q`)
+**Last updated:** 2026-11-03 · **Current phase:** Week 4 of 9 (pipeline + MCP server) · **Python tests:** 267 passing (`cd orchestrator && python -m pytest -q`)
 
 ## Plan status (from `PROJECT_CONTEXT.md` §16)
 
@@ -10,7 +10,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 |---|---|---|
 | 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
 | 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **Done:** all three green on CI (Boot 4.1.1) |
-| 3 | Registry part 2 + React template | **In progress:** `audit.logging` and `export.csv` green on CI; `deployment.docker` written, Java unverified; React template not started |
+| 3 | Registry part 2 + React template | **Done:** all 6 modules and the React template. Java modules green on CI; the template is verified here (41 tests, build, real-browser run) but its CI job has not run yet |
 | 4 | Pipeline + MCP server | Not started |
 | 5 | Validation, repair, **oracles written and frozen** | Not started |
 | 6 | Baselines B and C, 1-seed pilot, pin model | Not started |
@@ -39,7 +39,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 - **`crud.pagination` is green on CI (2026-11-04).** JPA on H2 with Hibernate 7 and Spring Data JPA 4 worked first time.
 - **`audit.logging` is green on CI (2026-11-05).** A first run failed only because CI built modules alphabetically and `audit.logging` sorted before `authentication.jwt`; CI now builds jwt first (D19).
 - **`export.csv` is green on CI (2026-11-06).**
-- **`deployment.docker` is only partly verified.** Python checks pass, including `docker compose config` on the Compose file and a check that the Flyway baseline matches the `AuditLog` entity. Not run anywhere: its Java test (Flyway on H2, `/actuator/health`), `docker compose up`, and both image builds. The backend image cannot build a generated app until the Assembler vendors the `com.mortar:*` module jars into `backend/` (D22).
+- **`deployment.docker` is green on CI (2026-11-07).** Not yet run anywhere: `docker compose up` and both image builds. The backend image cannot build a generated app until the Assembler vendors the `com.mortar:*` module jars into `backend/` (D22).
+- **`templates/react-admin-v1` verified in the sandbox, not yet on CI:** `npm ci`, `npm run build`, 41 Vitest tests (unit tests plus full-app render tests against a mocked backend) and a Playwright run of the built app against a fake backend that follows the API contract (login, sidebar, 25-row paginated table, admin sees Create and Export, viewer does not). Never run against the real Spring backend: the first full-stack run happens when the Assembler exists (Week 4). `npm audit` reports 0 production vulnerabilities only because of an `overrides` entry for `decode-uri-component` (D23).
 - `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
 - SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
 - No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
@@ -55,8 +56,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. **Owner:** push `deployment.docker` and send the `java` job result.
-2. Then the React Admin template (`templates/react-admin-v1/`): it must provide `package.json`, `package-lock.json`, `npm run build` to `dist/`, and read `VITE_API_URL` (the frontend Dockerfile depends on all three).
+1. **Owner:** push the template and check that the new `frontend` CI job is green.
+2. Start Week 4: the pipeline. First the Selector and Assembler (deterministic, testable with no model): blueprint to `components`, module jars vendored into `backend/`, `src/mortar.config.json` written from the blueprint, pluralization shared by backend controllers and the frontend `path` field.
 3. Locally, run `mvn install` on `authentication.jwt` before building `authorization.rbac`.
 4. Add `MODULE_REQUIRES` entries in `vocab.py` for any new module that needs another.
 
