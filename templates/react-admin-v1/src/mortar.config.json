@@ -1,0 +1,36 @@
+{
+  "appName": "Customer CRM",
+  "entities": [
+    {
+      "name": "Contact",
+      "path": "contacts",
+      "resource": "contact",
+      "fields": ["name", "email", "company", "phone"],
+      "searchable": true,
+      "exportable": true
+    },
+    {
+      "name": "Deal",
+      "path": "deals",
+      "resource": "deal",
+      "fields": ["title", "value", "stage", "contactId", "closeDate"]
+    },
+    {
+      "name": "Note",
+      "path": "notes",
+      "resource": "note",
+      "fields": ["body", "contactId", "authorId", "createdAt"]
+    }
+  ],
+  "kanban": [
+    { "entity": "Deal", "groupBy": "stage", "columns": ["LEAD", "QUALIFIED", "PROPOSAL", "WON", "LOST"] }
+  ],
+  "roles": [
+    { "name": "ADMIN", "permissions": ["*"] },
+    {
+      "name": "SALES_REP",
+      "permissions": ["contact:read", "contact:write", "contact:export", "deal:read", "deal:write", "note:*"]
+    },
+    { "name": "VIEWER", "permissions": ["contact:read", "deal:read", "note:read"] }
+  ]
+}
