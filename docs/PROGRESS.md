@@ -2,7 +2,7 @@
 
 Single source of truth for "where are we". Update at the end of every task. Keep it short; history lives in `git log`.
 
-**Last updated:** 2026-11-03 · **Current phase:** Week 4 of 9 (pipeline + MCP server) · **Python tests:** 267 passing (`cd orchestrator && python -m pytest -q`)
+**Last updated:** 2026-11-07 · **Current phase:** Week 4 of 9 (pipeline + MCP server) · **Python tests:** 306 passing (`cd orchestrator && python -m pytest -q`)
 
 ## Plan status (from `PROJECT_CONTEXT.md` §16)
 
@@ -11,7 +11,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 | 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
 | 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **Done:** all three green on CI (Boot 4.1.1) |
 | 3 | Registry part 2 + React template | **Done:** all 6 modules and the React template. Java modules green on CI; the template is verified here (41 tests, build, real-browser run) but its CI job has not run yet |
-| 4 | Pipeline + MCP server | Not started |
+| 4 | Pipeline + MCP server | **In progress:** registry loader, naming, Selector, event log, `mortar select` done (D24). Next: module resolver, renderer, Assembler, then Planner/Composer, MCP server |
 | 5 | Validation, repair, **oracles written and frozen** | Not started |
 | 6 | Baselines B and C, 1-seed pilot, pin model | Not started |
 | 7 | Benchmark (168 runs) | Not started |
@@ -56,17 +56,6 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. **Owner:** push the template and check that the new `frontend` CI job is green.
-2. Start Week 4: the pipeline. First the Selector and Assembler (deterministic, testable with no model): blueprint to `components`, module jars vendored into `backend/`, `src/mortar.config.json` written from the blueprint, pluralization shared by backend controllers and the frontend `path` field.
-3. Locally, run `mvn install` on `authentication.jwt` before building `authorization.rbac`.
-4. Add `MODULE_REQUIRES` entries in `vocab.py` for any new module that needs another.
-
-## Open questions for the owner
-
-- Which model and API key will be pinned for the benchmark? (Needed by Week 6; needed sooner to close the Week 1 gap.)
-- Confirm GitHub email on commits matches a verified email on the account.
-
-## Parked ideas (outside v1 scope; do not build yet)
-
-- LLM Selector ablation, adapted-vs-vendored modules, rate-limit module (Phase 2, `PROJECT_CONTEXT.md` §5).
-- "Mortar Web": a website around the pipeline. Prefer replay mode for public demos; sandbox builds and cap spend for live runs. Keep a `generate(prompt, k) -> events + output_dir` function so a thin API can wrap it later.
+1. **Owner:** push the Selector commit and check CI is green.
+2. Assembler (deterministic): render `pom.xml`, `application.yml` and the Docker files from the selection; vendor the `com.mortar:*` module jars into `backend/`; copy `templates/react-admin-v1` and write `src/mortar.config.json` from the blueprint (paths from `naming.py`). Every file written goes through `EventLog`.
+3. Planner and Composer agents (need an API key and a pinned model), then the MCP server.
