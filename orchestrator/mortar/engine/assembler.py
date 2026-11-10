@@ -32,6 +32,23 @@ SPRING_BOOT_VERSION = "4.1.1"  # keep equal to the registry module POMs (a test 
 SKIP_TEMPLATE_DIRS = {"node_modules", "dist"}
 
 
+# Libraries a capability needs when no module provides it, so the Composer's code can compile.
+UNCOVERED_DEPENDENCIES: dict[str, tuple[tuple[str, str], ...]] = {
+    "authentication.jwt": (
+        ("org.springframework.boot", "spring-boot-starter-security"),
+        ("com.nimbusds", "nimbus-jose-jwt"),
+    ),
+    "authorization.rbac": (("org.springframework.boot", "spring-boot-starter-security"),),
+    "audit.logging": (("org.springframework.boot", "spring-boot-starter-security"),),
+    "deployment.docker": (("org.springframework.boot", "spring-boot-starter-actuator"),),
+    "observability.actuator": (("org.springframework.boot", "spring-boot-starter-actuator"),),
+    "database.flyway": (
+        ("org.springframework.boot", "spring-boot-starter-flyway"),
+        ("org.flywaydb", "flyway-database-postgresql"),
+    ),
+}
+
+
 class AssemblyError(ValueError):
     """The selection cannot be turned into a project."""
 
@@ -69,6 +86,15 @@ def app_pom(blueprint: Mapping[str, Any], registry: Mapping[str, ModuleInfo]) ->
         "    </dependency>\n"
         for c in blueprint["components"]
     )
+    needed: dict[tuple[str, str], None] = {}
+    for capability in blueprint["uncovered"]:
+        for pair in UNCOVERED_DEPENDENCIES.get(capability, ()):
+            needed[pair] = None
+    extra = "".join(
+        f"    <dependency>\n      <groupId>{g}</groupId>\n      <artifactId>{a}</artifactId>\n    </dependency>\n"
+        for g, a in needed
+    )
+    mortar += extra
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -315,3 +341,13 @@ def assemble(
     if log:
         log.emit("assembled", files=len(w.files))
     return AssemblyResult(out_dir, w.files)
+
+
+def write_generated(
+    out_dir: Path, files: Mapping[str, str], log: EventLog | None = None, source: str = "composer"
+) -> dict[str, str]:
+    """Write model-produced files (already path-checked) and log each one. Returns path -> sha256."""
+    writer = _Writer(out_dir, log)
+    for path, content in sorted(files.items()):
+        writer.text(path, content, source)
+    return writer.files
