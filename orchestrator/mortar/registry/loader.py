@@ -7,6 +7,7 @@ Selector and Assembler work only from these records.
 from __future__ import annotations
 
 import json
+import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -42,6 +43,9 @@ class ModuleInfo:
     group_id: str
     artifact_id: str
     artifact_version: str
+    category: str = ""
+    tags: tuple[str, ...] = ()
+    description: str = ""  # from the SKILL.md frontmatter
 
     @property
     def module_dir(self) -> Path:
@@ -67,6 +71,11 @@ def _maven_coordinates(pom: Path) -> tuple[str, str, str]:
         return node.text.strip()
 
     return text("groupId"), text("artifactId"), text("version")
+
+
+def _skill_description(skill: Path) -> str:
+    match = re.search(r"^description:\s*(.+)$", skill.read_text(encoding="utf-8"), flags=re.M)
+    return match.group(1).strip() if match else ""
 
 
 def load_module(module_dir: Path) -> ModuleInfo:
@@ -104,6 +113,9 @@ def load_module(module_dir: Path) -> ModuleInfo:
         group_id=group_id,
         artifact_id=artifact_id,
         artifact_version=artifact_version,
+        category=metadata.get("category", ""),
+        tags=tuple(str(t) for t in metadata.get("tags", [])),
+        description=_skill_description(module_dir / "SKILL.md"),
     )
 
 
