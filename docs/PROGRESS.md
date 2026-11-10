@@ -2,7 +2,7 @@
 
 Single source of truth for "where are we". Update at the end of every task. Keep it short; history lives in `git log`.
 
-**Last updated:** 2026-11-09 · **Current phase:** Week 4 of 9 (pipeline + MCP server) · **Python tests:** 318 passing (`cd orchestrator && python -m pytest -q`)
+**Last updated:** 2026-11-10 · **Current phase:** Week 4 of 9 (pipeline + MCP server) · **Python tests:** 351 passing (`cd orchestrator && python -m pytest -q`)
 
 ## Plan status (from `PROJECT_CONTEXT.md` §16)
 
@@ -11,7 +11,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 | 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
 | 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **Done:** all three green on CI (Boot 4.1.1) |
 | 3 | Registry part 2 + React template | **Done:** all 6 modules and the React template. Java modules green on CI; the template is verified here (41 tests, build, real-browser run) but its CI job has not run yet |
-| 4 | Pipeline + MCP server | **In progress:** registry loader, naming, Selector, event log, `mortar select` done (D24). Assembler and `mortar assemble` done (D25; compose config valid, generated frontend builds and passes its tests). Next: Planner/Composer agents, MCP server |
+| 4 | Pipeline + MCP server | **In progress:** registry loader, naming, Selector, event log, `mortar select` done (D24). Assembler and `mortar assemble` done (D25; compose config valid, generated frontend builds and passes its tests). Planner, Composer, `LitellmClient`, `pipeline.generate` and `mortar generate` done (D26; **fake model only, never run against a real one**). Next: MCP server |
 | 5 | Validation, repair, **oracles written and frozen** | Not started |
 | 6 | Baselines B and C, 1-seed pilot, pin model | Not started |
 | 7 | Benchmark (168 runs) | Not started |
@@ -56,6 +56,6 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. **Owner:** push the Assembler commits and check CI is green (the Dockerfile in `deployment.docker` changed; Python tests cover it).
-2. Planner and Composer agents (need an API key and a pinned model). The Composer works only under `backend/src/main/java/<basePackage>/` and the `uncovered` list.
-3. MCP server. Then Week 5: build, test and repair stage (first real check that a generated backend compiles and images build).
+1. **Owner:** push the agents commits and check CI is green. To try a real run: `pip install -e "orchestrator[llm]"`, set the provider key and `MORTAR_MODEL`, then `mortar generate --prompt-file <file> --out <dir> --k 6`. This is the first real check of the Planner and Composer prompts.
+2. MCP server (`mcp-server/server.py`: list modules, read a module's SKILL.md, validate/select/assemble).
+3. Week 5: build, test and repair stage (first check that a generated backend compiles and images build), reuse-violation check, and the oracles (written by hand, then frozen).

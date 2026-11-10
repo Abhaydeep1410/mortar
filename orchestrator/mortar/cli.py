@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -17,6 +18,10 @@ from .engine.blueprint_validator import errors_only, load_blueprint, validate_bl
 from .engine.coverage import modules_for_k
 from .engine.selector import SelectionError, select
 from .events import EventLog
+from .llm import LitellmClient, LlmError
+from .pipeline import generate
+from .agents.composer import ComposeError
+from .agents.planner import PlanError
 from .engine.vocab import ABLATION_ORDER_ALTERNATE, ABLATION_ORDER_PRIMARY
 from .registry.loader import RegistryError, load_registry
 
@@ -83,6 +88,25 @@ def _cmd_assemble(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_generate(args: argparse.Namespace) -> int:
+    if bool(args.prompt) == bool(args.prompt_file):
+        print("give exactly one of --prompt and --prompt-file", file=sys.stderr)
+        return 2
+    prompt = args.prompt or Path(args.prompt_file).read_text(encoding="utf-8")
+    order = ABLATION_ORDER_ALTERNATE if args.order == "alternate" else ABLATION_ORDER_PRIMARY
+    out = Path(args.out)
+    try:
+        record = generate(
+            prompt, out, LitellmClient.from_env(), load_registry(), args.k, order,
+            events_path=out.parent / f"{out.name}.events.jsonl",
+        )
+    except (LlmError, PlanError, ComposeError, SelectionError, AssemblyError, RegistryError, OSError) as exc:
+        print(f"generation failed: {exc}", file=sys.stderr)
+        return 1
+    print(json.dumps(record, indent=2))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="mortar", description="LLMs plan. Mortar builds.")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -100,6 +124,13 @@ def main(argv: list[str] | None = None) -> int:
     build.add_argument("--k", type=int, default=None)
     build.add_argument("--order", choices=["primary", "alternate"], default="primary")
     build.set_defaults(func=_cmd_assemble)
+    gen = sub.add_parser("generate", help="plan, select, assemble and compose (needs MORTAR_MODEL)")
+    gen.add_argument("--prompt", help="the application request")
+    gen.add_argument("--prompt-file", help="file holding the application request")
+    gen.add_argument("--out", required=True, help="output directory (must be empty or new)")
+    gen.add_argument("--k", type=int, default=None)
+    gen.add_argument("--order", choices=["primary", "alternate"], default="primary")
+    gen.set_defaults(func=_cmd_generate)
     args = parser.parse_args(argv)
     return args.func(args)
 
