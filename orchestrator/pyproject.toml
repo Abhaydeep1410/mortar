@@ -10,6 +10,7 @@ dependencies = [
 
 [project.optional-dependencies]
 llm = ["litellm"]
+mcp = ["mcp==2.3.0"]
 dev = ["pytest>=8"]
 tokens = ["tiktoken"]
 
