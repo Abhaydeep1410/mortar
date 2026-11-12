@@ -47,10 +47,11 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 - Assistant sandbox has Java 21, Node 22, Docker, but **Maven Central is not reachable** and it has no `pytest` or `jsonschema` installed, so the assistant cannot run the full suite. Never claim a Java module or the full Python suite passes without your own run or CI.
 - Owner machine: Windows. Do not put `#` comments on command lines given to `cmd`. Needs JDK 21, Maven 3.9+, Docker Desktop (for validation and Testcontainers), Node 22.
 - Repo: https://github.com/Abhaydeep1410/mortar, branch `main`.
+- Owner machine setup (verified 2026-11-12): Python 3.12 venv at the repo root (`py -3.12 -m venv .venv`, then `pip install -e ".[dev,tokens,llm,mcp]"` from `orchestrator`; Python 3.11 does not work, `requires-python >=3.12`). Temurin JDK 21.0.13, Maven 3.9.16, Docker Desktop 4.39.0, Node 22.20.0. Locally verified: `mortar select` and `assemble` on the crm-01 fixture (k=6, 99 files, nothing uncovered), `mvn verify` on `authentication.jwt`. Activate the venv in every new terminal.
 
 ## Next steps (in order)
 
-1. ~~Owner: run the suite~~ Done 2026-11-12: 420 passed locally on Windows. Still to do: push and check CI.
+1. ~~Run the suite~~ Done 2026-11-12: 420 passed locally on Windows. Still to do: push and check CI (then delete this item and renumber).
 2. **First real run** (needs Maven, Docker, JDK 21, an API key, `MORTAR_MODEL`). Start without Docker cost by using `--k 6` and no `--validate`, check that the Planner and Composer produce sane output, then add `--validate`:
    `mortar generate --prompt-file evaluator\benchmark\prompts\crm-01.yaml --out runs\crm-01-try1 --k 6`
    (`--prompt-file` expects plain text, so put the prompt text from the YAML's `prompt` field into a `.txt` file first.) Paste any failure and fix the stage or the prompts.
