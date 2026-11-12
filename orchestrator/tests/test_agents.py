@@ -146,7 +146,7 @@ def test_pipeline_end_to_end_with_a_fake_model(registry, tmp_path):
     assert record["cost_usd"] == pytest.approx(0.02)
     assert record["modules"] == ["crud.pagination", "authentication.jwt"]
     assert (out / f"{JAVA}Contact.java").is_file() and (out / "docker-compose.yml").is_file()
-    assert json.loads((out / "run.json").read_text())["built"] is False
+    assert json.loads((out / "run.json").read_text())["build_success"] is None
     events = [json.loads(line) for line in (tmp_path / "ev.jsonl").read_text().splitlines()]
     assert [e["seq"] for e in events] == list(range(1, len(events) + 1))
     assert events[0]["kind"] == "planned" and events[-1]["kind"] == "reuse_checked"
