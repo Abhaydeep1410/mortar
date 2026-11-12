@@ -20,6 +20,8 @@ from .engine.selector import SelectionError, select
 from .events import EventLog
 from .llm import LitellmClient, LlmError
 from .pipeline import generate
+from .validation.runner import SubprocessRunner
+from .validation.validate import validate_project
 from .agents.composer import ComposeError
 from .agents.planner import PlanError
 from .engine.vocab import ABLATION_ORDER_ALTERNATE, ABLATION_ORDER_PRIMARY
@@ -99,6 +101,7 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         record = generate(
             prompt, out, LitellmClient.from_env(), load_registry(), args.k, order,
             events_path=out.parent / f"{out.name}.events.jsonl",
+            validator=(lambda d: validate_project(d, SubprocessRunner())) if args.validate else None,
         )
     except (LlmError, PlanError, ComposeError, SelectionError, AssemblyError, RegistryError, OSError) as exc:
         print(f"generation failed: {exc}", file=sys.stderr)
@@ -130,6 +133,8 @@ def main(argv: list[str] | None = None) -> int:
     gen.add_argument("--out", required=True, help="output directory (must be empty or new)")
     gen.add_argument("--k", type=int, default=None)
     gen.add_argument("--order", choices=["primary", "alternate"], default="primary")
+    gen.add_argument("--validate", action="store_true",
+                     help="build and start the project (needs Maven, Docker); repair up to 2 times")
     gen.set_defaults(func=_cmd_generate)
     args = parser.parse_args(argv)
     return args.func(args)
