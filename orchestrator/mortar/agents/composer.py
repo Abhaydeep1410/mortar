@@ -15,7 +15,7 @@ from typing import Any
 import yaml
 
 from ..engine.naming import entity_table
-from ..llm import LlmClient, Usage, tool_spec
+from ..llm import LlmClient, ToolResult, Usage, tool_spec
 from ..registry.loader import ModuleInfo, REPO_ROOT
 
 DESIGN_DOC = REPO_ROOT / "docs" / "benchmark-design.md"
@@ -58,7 +58,13 @@ WRITE_FILES = tool_spec(
 
 
 class ComposeError(ValueError):
-    """The Composer's output is unusable (bad paths, collisions, empty)."""
+    """The Composer's output is unusable (bad paths, collisions, empty).
+
+    `usage` is set when the model call itself succeeded, so its cost is never lost."""
+
+    def __init__(self, message: str, usage: Usage | None = None) -> None:
+        super().__init__(message)
+        self.usage = usage
 
 
 @dataclass(frozen=True)
@@ -135,15 +141,23 @@ def compose(
     existing: Collection[str],
 ) -> ComposeResult:
     result = client.call_tool(SYSTEM_PROMPT, build_user_prompt(blueprint, registry, existing), WRITE_FILES)
-    entries = result.arguments.get("files")
-    if not isinstance(entries, list) or not entries:
-        raise ComposeError("the Composer returned no files")
-    files: dict[str, str] = {}
-    for entry in entries:
-        if not isinstance(entry, dict) or not isinstance(entry.get("path"), str) or not isinstance(entry.get("content"), str):
-            raise ComposeError("each file needs a string path and content")
-        path = check_path(entry["path"], blueprint, existing)
-        if path in files:
-            raise ComposeError(f"duplicate path in output: {path}")
-        files[path] = entry["content"]
+    return parse_files(result, blueprint, existing)
+
+
+def parse_files(result: ToolResult, blueprint: Mapping[str, Any], existing: Collection[str]) -> ComposeResult:
+    """Validate a `write_files` response; any problem raises ComposeError that still carries the usage."""
+    try:
+        entries = result.arguments.get("files")
+        if not isinstance(entries, list) or not entries:
+            raise ComposeError("the model returned no files")
+        files: dict[str, str] = {}
+        for entry in entries:
+            if not isinstance(entry, dict) or not isinstance(entry.get("path"), str) or not isinstance(entry.get("content"), str):
+                raise ComposeError("each file needs a string path and content")
+            path = check_path(entry["path"], blueprint, existing)
+            if path in files:
+                raise ComposeError(f"duplicate path in output: {path}")
+            files[path] = entry["content"]
+    except ComposeError as exc:
+        raise ComposeError(str(exc), result.usage) from None
     return ComposeResult(files, result.usage)

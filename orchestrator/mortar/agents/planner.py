@@ -32,6 +32,10 @@ SUBMIT_BLUEPRINT = tool_spec(
 class PlanError(RuntimeError):
     """The Planner could not produce a valid blueprint within the allowed attempts."""
 
+    def __init__(self, message: str, usages: tuple[Usage, ...] = ()) -> None:
+        super().__init__(message)
+        self.usages = usages
+
 
 @dataclass(frozen=True)
 class PlanResult:
@@ -87,4 +91,4 @@ def plan(prompt: str, client: LlmClient, max_attempts: int = 3) -> PlanResult:
         if not failed:
             return PlanResult(blueprint, tuple(usages))
         issues = [str(issue) for issue in failed]
-    raise PlanError(f"no valid blueprint after {max_attempts} attempts; last problems: {issues}")
+    raise PlanError(f"no valid blueprint after {max_attempts} attempts; last problems: {issues}", tuple(usages))
