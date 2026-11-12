@@ -16,3 +16,10 @@ java: ">=21"
 conflicts_with: []
 
 tags: [export, csv, download, report, jpa]
+
+owns:
+  imports:
+    - org.apache.commons.csv.
+    - com.opencsv.
+    - com.fasterxml.jackson.dataformat.csv.
+    - tools.jackson.dataformat.csv.

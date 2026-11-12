@@ -19,3 +19,7 @@ java: ">=21"
 conflicts_with: []
 
 tags: [docker, compose, deployment, flyway, migration, actuator, health, postgres, nginx]
+
+owns:
+  imports:
+    - org.flywaydb.

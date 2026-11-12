@@ -20,3 +20,10 @@ conflicts_with:
   - authentication.oauth2   # both own the SecurityFilterChain
 
 tags: [auth, jwt, login, token, security, bearer, spring-security]
+
+owns:
+  imports:
+    - com.nimbusds.
+    - io.jsonwebtoken.
+    - com.auth0.jwt.
+    - org.springframework.security.oauth2.jwt.

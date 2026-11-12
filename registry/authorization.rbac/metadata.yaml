@@ -17,3 +17,8 @@ java: ">=21"
 conflicts_with: []
 
 tags: [authorization, rbac, roles, permissions, "403", spring-security]
+
+owns:
+  imports:
+    - org.springframework.security.access.prepost.
+    - org.springframework.security.config.annotation.method.

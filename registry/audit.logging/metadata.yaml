@@ -19,3 +19,8 @@ java: ">=21"
 conflicts_with: []
 
 tags: [audit, logging, history, compliance, who-did-what, jpa, spring-security]
+
+owns:
+  imports:
+    - org.hibernate.envers.
+    - org.javers.

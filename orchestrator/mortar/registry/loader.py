@@ -45,6 +45,7 @@ class ModuleInfo:
     artifact_version: str
     category: str = ""
     tags: tuple[str, ...] = ()
+    owns_imports: tuple[str, ...] = ()
     description: str = ""  # from the SKILL.md frontmatter
 
     @property
@@ -115,6 +116,7 @@ def load_module(module_dir: Path) -> ModuleInfo:
         artifact_version=artifact_version,
         category=metadata.get("category", ""),
         tags=tuple(str(t) for t in metadata.get("tags", [])),
+        owns_imports=tuple(metadata.get("owns", {}).get("imports", [])),
         description=_skill_description(module_dir / "SKILL.md"),
     )
 

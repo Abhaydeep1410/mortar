@@ -39,6 +39,16 @@
     "spring_boot": { "type": "string" },
     "java": { "type": "string" },
     "conflicts_with": { "type": "array", "items": { "type": "string" } },
-    "tags": { "type": "array", "items": { "type": "string" } }
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "owns": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "imports": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.$" }
+        }
+      }
+    }
   }
 }

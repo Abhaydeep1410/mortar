@@ -18,3 +18,7 @@ java: ">=21"
 conflicts_with: []
 
 tags: [crud, rest, pagination, paging, sorting, search, jpa, spring-data]
+
+owns:
+  imports:
+    - org.springframework.data.rest.
