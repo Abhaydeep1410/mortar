@@ -8,7 +8,7 @@ from dataclasses import dataclass
 MAX_ERRORS = 20
 TAIL_LINES = 40
 
-JAVAC = re.compile(r"\[ERROR\]\s+(?P<path>\S+\.java):\[(?P<line>\d+),(?P<col>\d+)\]\s+(?P<message>.*)")
+JAVAC = re.compile(r"\[ERROR\]\s+(?P<path>.+?\.java):\[(?P<line>\d+),(?P<col>\d+)\]\s+(?P<message>.*)")
 DETAIL = re.compile(r"\[ERROR\]\s{3,}(?P<detail>\S.*)")
 
 
@@ -22,6 +22,7 @@ class BuildError:
 
 def _relative(path: str) -> str:
     """Project-relative path: everything from the `backend/` directory on, else the file as given."""
+    path = path.replace("\\", "/")  # Windows javac prints backslashes
     index = path.find("backend/")
     return path[index:] if index != -1 else path
 

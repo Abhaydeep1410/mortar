@@ -1,63 +1,60 @@
 # Progress
 
-Single source of truth for "where are we". Update at the end of every task. Keep it short; history lives in `git log`.
+Single source of truth for "where are we". Update at the end of every task. Keep it short; reasoning lives in `docs/DECISIONS.md`, history in `git log`.
 
-**Last updated:** 2026-11-10 · **Current phase:** Week 4 of 9 (pipeline + MCP server) · **Python tests:** 417 passing (`cd orchestrator && python -m pytest -q`)
+**Last updated:** 2026-11-12 · **Current phase:** Week 5 of 9 (validation done, oracles next) · **Python tests:** run `cd orchestrator && python -m pytest -q` and write the count here (the last recorded count, 417 on 2026-11-10, predates the Week 5 commits)
 
 ## Plan status (from `PROJECT_CONTEXT.md` §16)
 
 | Week | Focus | Status |
 |---|---|---|
-| 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
-| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **Done:** all three green on CI (Boot 4.1.1) |
-| 3 | Registry part 2 + React template | **Done:** all 6 modules and the React template. Java modules green on CI; the template is verified here (41 tests, build, real-browser run) but its CI job has not run yet |
-| 4 | Pipeline + MCP server | **In progress:** registry loader, naming, Selector, event log, `mortar select` done (D24). Assembler and `mortar assemble` done (D25; compose config valid, generated frontend builds and passes its tests). Planner, Composer, `LitellmClient`, `pipeline.generate` and `mortar generate` done (D26; **fake model only, never run against a real one**). MCP server done (D27: three read-only tools, tested over stdio). **Week 4 code complete.** Week 5: reuse checker and LOC metrics (D28), validation stage and bounded repair (D29, scripted tests only) done. Open: a real model run of `mortar generate` |
-| 5 | Validation, repair, **oracles written and frozen** | Not started |
+| 1 | Specs, 8 prompts, validator, Baseline A | Done. Open: Baseline A has never run against a real model |
+| 2 | Registry part 1 (jwt, rbac, pagination) | Done, green on CI |
+| 3 | Registry part 2 + React template | Done. Java modules green on CI; the template's CI job has not run yet |
+| 4 | Pipeline + MCP server | Code complete (D24-D27): loader, Selector, Assembler, Planner, Composer, `mortar generate`, MCP server |
+| 5 | Validation, repair, oracles | **In progress.** Done: reuse checker + LOC (D28), validation stage + bounded repair (D29), first-real-run hardening (D30). Not started: run-record writer, `reuse_rate_tokens`, the 8 oracles, freeze |
 | 6 | Baselines B and C, 1-seed pilot, pin model | Not started |
 | 7 | Benchmark (168 runs) | Not started |
 | 8-9 | Analysis, report, demo, README | Not started |
 
+## The one big risk
+
+**Nothing has run against a real model, real Maven, or real Docker.** Baseline A, `mortar generate` and the validation stage are tested only with fakes and scripted command output. D30 fixed four things found by reading the code (Windows paths, `mvn.cmd` lookup, the health clock, wasted rebuilds), but the first real run will find more. Do this run before writing oracles: oracles frozen against output shapes that later change are expensive to redo.
+
 ## What exists and works
 
-- Specs: `docs/blueprint-spec.md`, `docs/module-spec.md`, `docs/benchmark-design.md`; schemas in `schemas/`.
-- 8 benchmark prompts with acceptance criteria: `evaluator/benchmark/prompts/`.
-- Blueprint validator (schema + 12 semantic rules) and `mortar validate` CLI.
-- Coverage ablation logic (k = 0/2/4/6, primary and alternate orders): `orchestrator/mortar/engine/coverage.py`.
-- `SKILL.md` budget checker: `tools/check_skill_budget.py`.
-- Baseline A (`evaluator/baselines/single_agent.py`) with run-record invariants; tested with a fake model.
-- CI workflow (`.github/workflows/ci.yml`): Python tests, example blueprint, SKILL.md budgets, and a `java` job that runs `mvn verify` on every `registry/*/module`.
-- `registry/authentication.jwt/`: Java source (token service, filter, login controller, auto-configuration), JUnit tests, `metadata.yaml`, `SKILL.md` (about 311 tokens by an upper-bound count), `config-schema.json`, example config.
-- `orchestrator/tests/test_registry.py`: checks every module's layout, metadata, SKILL.md, config schema, example config, provided interfaces and POM against the spec (no Java needed).
+- Specs (`docs/*.md`), schemas, 8 benchmark prompts with acceptance criteria, blueprint validator (schema + semantic rules), coverage ablation logic, `SKILL.md` budget checker.
+- Registry: 6 modules (`authentication.jwt`, `authorization.rbac`, `audit.logging`, `crud.pagination`, `export.csv`, `deployment.docker`), all green on CI (Boot 4.1.1, 2026-11-04 to 2026-11-07), plus `templates/react-admin-v1` (41 Vitest tests, build and a Playwright run verified in the sandbox against a fake backend).
+- Orchestrator: model client (`LitellmClient`), Planner, Selector, Assembler, Composer, Repairer, reuse checker, validation stage, event log (JSONL), `mortar validate | select | assemble | generate`.
+- MCP server: `search_components`, `get_skill`, `get_dependencies`, tested over stdio.
+- `run.json` per generate run: tokens per stage, cost, modules, uncovered, reuse metrics and violations, `build_success`, `first_pass_build`, `repair_iterations`, validation stages, structured errors.
+- CI: Python tests, example blueprint, SKILL.md budgets, `mvn verify` per module, frontend job.
 
-## Not done / known gaps
+## Known gaps
 
-- Baseline A never run for real (no API key yet). Exit criterion for Week 1 is open until it is.
-- Token counting uses chars/4 unless `tiktoken` is installed (CI installs it). Pin one counter before the benchmark.
-- `authentication.jwt` is only verified by CI (run 2: compiles, 24/26 tests pass). The assistant sandbox cannot reach Maven Central, so never claim it passes without a CI or local `mvn verify` result.
-- **`authentication.jwt` is green on CI (Boot 4.1.1, 26 tests).** The CORS bug was that MVC's `HandlerMappingIntrospector` is already a `CorsConfigurationSource`, so the CORS source is now built inline, not a bean (D18).
-- **`authentication.jwt` and `authorization.rbac` are green on CI (2026-11-04, Boot 4.1.1).** RBAC needed `@PathVariable("id")` in its test controller because module POMs do not use the Boot parent (`-parameters` is off); `crud.pagination` sets `maven.compiler.parameters` for the same reason. CI runs `mvn install` per module so rbac can resolve `com.mortar:jwt-auth` (D19).
-- **`crud.pagination` is green on CI (2026-11-04).** JPA on H2 with Hibernate 7 and Spring Data JPA 4 worked first time.
-- **`audit.logging` is green on CI (2026-11-05).** A first run failed only because CI built modules alphabetically and `audit.logging` sorted before `authentication.jwt`; CI now builds jwt first (D19).
-- **`export.csv` is green on CI (2026-11-06).**
-- **`deployment.docker` is green on CI (2026-11-07).** Not yet run anywhere: `docker compose up` and both image builds. The backend image cannot build a generated app until the Assembler vendors the `com.mortar:*` module jars into `backend/` (D22).
-- **`templates/react-admin-v1` verified in the sandbox, not yet on CI:** `npm ci`, `npm run build`, 41 Vitest tests (unit tests plus full-app render tests against a mocked backend) and a Playwright run of the built app against a fake backend that follows the API contract (login, sidebar, 25-row paginated table, admin sees Create and Export, viewer does not). Never run against the real Spring backend: the first full-stack run happens when the Assembler exists (Week 4). `npm audit` reports 0 production vulnerabilities only because of an `overrides` entry for `decode-uri-component` (D23).
-- `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
-- SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
-- No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
-- Nothing yet checks `module/` Java against `metadata.yaml`.
-- The reuse checker is import and name based; a reimplementation under a new name is not caught (D28). `reuse_rate_tokens` is not implemented.
+- Never run for real: Baseline A, `mortar generate`, `--validate`, `docker compose up`, the backend image build of a generated app, the full stack with the React template. Java module results are only ever claimed from CI or a local `mvn verify`; the assistant sandbox cannot reach Maven Central.
+- `run.json` lacks fields `benchmark-design.md` §6 requires for a `RunRecord`: `prompt_id`, `strategy`, `seed`, `generation_time_s`, `first_pass_success` (needs oracle results), `coverage`, `reuse_rate_tokens`. A run-record writer is the next Week 5 task.
+- `mortar.agents.composer` imports `evaluator.common` (shared contract loader). That works from the repo (pytest adds `..` to the path) but not for a pip-installed `mortar`, because `pyproject.toml` packages only `mortar*`. Fine for the benchmark; move the helper into `mortar/` before any packaging.
+- Reuse checker is import and name based; a reimplementation under a new name is not caught (D28).
+- Token counting uses chars/4 unless `tiktoken` is installed (CI installs it). Pin one counter before the pilot.
+- `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md`; the registry file is authoritative.
+- Nothing checks `module/` Java against `metadata.yaml`.
 - Name `mortar` not checked for availability on PyPI.
+- `docs/results.md` (in the §12 layout) does not exist yet; it is created with the first results.
 
 ## Environment notes
 
-- Assistant sandbox has Java 21, Maven 3.9, Node 22, Docker, but **Maven Central is not reachable from it** (checked 2026-11-02). Java modules can be written there but not built or tested. The owner must run `mvn verify` locally and report results; never claim a Java module "passes" without that.
-- Owner needs JDK 21 and Maven 3.9+ on the Windows machine (and Docker Desktop later, for Testcontainers).
-- Authoring machine is Windows (`cmd`): do not put `#` comments on command lines when giving commands.
+- Assistant sandbox has Java 21, Node 22, Docker, but **Maven Central is not reachable** and it has no `pytest` or `jsonschema` installed, so the assistant cannot run the full suite. Never claim a Java module or the full Python suite passes without your own run or CI.
+- Owner machine: Windows. Do not put `#` comments on command lines given to `cmd`. Needs JDK 21, Maven 3.9+, Docker Desktop (for validation and Testcontainers), Node 22.
 - Repo: https://github.com/Abhaydeep1410/mortar, branch `main`.
 
 ## Next steps (in order)
 
-1. **Owner:** push the validation commits; check CI is green.
-2. Week 5 remaining: the run-record writer (`RunRecord` shape from `benchmark-design.md` section 6, from `run.json` plus the invariants check), `reuse_rate_tokens`, and the 8 oracles (JUnit + RestAssured API suites, a Playwright smoke) with a shared harness, then freeze.
-3. First real run, on your machine (needs Maven, Docker, Java 21, an API key and `MORTAR_MODEL`): `mortar generate --prompt-file <file> --out <dir> --k 6 --validate`. Paste the failure and I will fix the validation stage or the prompts.
-4. Still open from Week 4: the Claude Code `claude mcp add` check.
+1. **Owner:** run `cd orchestrator && python -m pytest -q` (D30 touched `pipeline.py`, `errors.py`, `runner.py`, `validate.py` and added 4 tests), commit, push, check CI. Record the test count above.
+2. **First real run** (needs Maven, Docker, JDK 21, an API key, `MORTAR_MODEL`). Start without Docker cost by using `--k 6` and no `--validate`, check that the Planner and Composer produce sane output, then add `--validate`:
+   `mortar generate --prompt-file evaluator\benchmark\prompts\crm-01.yaml --out runs\crm-01-try1 --k 6`
+   (`--prompt-file` expects plain text, so put the prompt text from the YAML's `prompt` field into a `.txt` file first.) Paste any failure and fix the stage or the prompts.
+3. Run Baseline A on `crm-01` for real (closes the Week 1 exit criterion).
+4. Run-record writer (`RunRecord` from `benchmark-design.md` §6) and `reuse_rate_tokens`.
+5. The 8 oracles (JUnit + RestAssured API suites, Playwright smoke) with a shared harness; then freeze prompts and oracles.
+6. Still open from Week 4: the `claude mcp add` check against Claude Code.

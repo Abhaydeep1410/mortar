@@ -277,3 +277,51 @@ def test_repair_prompt_shows_only_blamed_composer_files():
 def test_compose_error_carries_usage():
     err = ComposeError("x", Usage(1, 2, 0.3))
     assert err.usage.cost_usd == 0.3 and ComposeError("y").usage is None
+
+
+# ---- first-real-run hardening (Windows paths, executable lookup, health clock, rejected repair) ----
+
+WINDOWS_JAVAC = (
+    "[ERROR] C:\\Users\\Abhay Deep\\runs\\crm\\backend\\src\\main\\java\\com\\example\\crm\\Deal.java:[7,3] "
+    "cannot find symbol\n[ERROR]   symbol:   class Foo\n"
+)
+
+
+def test_parse_maven_handles_windows_paths_with_spaces():
+    (error,) = parse_maven(WINDOWS_JAVAC)
+    assert error.path == "backend/src/main/java/com/example/crm/Deal.java" and error.line == 7
+
+
+def test_subprocess_runner_resolves_the_executable_through_path(monkeypatch, tmp_path):
+    import sys
+
+    from mortar.validation import runner as runner_module
+
+    monkeypatch.setattr(runner_module.shutil, "which", lambda name: sys.executable if name == "fake-mvn" else None)
+    result = runner_module.SubprocessRunner().run(["fake-mvn", "-c", "print('hi')"], tmp_path, 30)
+    assert result.ok and result.output.strip() == "hi"
+    missing = runner_module.SubprocessRunner().run(["definitely-not-installed-xyz"], tmp_path, 30)
+    assert missing.returncode == 127
+
+
+def test_health_deadline_starts_after_compose_up_returns(tmp_path):
+    clock = Clock()
+
+    class SlowUp(FakeRunner):
+        def run(self, args, cwd, timeout_s, env=None):
+            if "up" in args:
+                clock.now += 100  # a slow `docker compose up -d`
+            return super().run(args, cwd, timeout_s, env)
+
+    polls = iter([False, False, True])
+    result = validate_project(project(tmp_path), SlowUp(), health=lambda: next(polls), clock=clock,
+                              sleep=clock.sleep, health_deadline_s=10)
+    assert result.build_success
+
+
+def test_rejected_repair_is_not_revalidated(registry, tmp_path):
+    bad = {"files": [{"path": "backend/pom.xml", "content": "<project/>"}]}
+    client = ScriptedClient(blueprint_response(), files(**{"A.java": "x"}), bad, bad)
+    validator = validator_returning(FAIL)
+    record = generate("p", tmp_path / "o", client, registry, k=6, validator=validator)
+    assert len(validator.calls) == 1 and record["repair_iterations"] == 2 and record["build_success"] is False

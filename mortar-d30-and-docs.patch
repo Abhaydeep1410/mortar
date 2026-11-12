@@ -1,0 +1,294 @@
+diff --git a/README.md b/README.md
+index 4c40314..798b43c 100644
+--- a/README.md
++++ b/README.md
+@@ -4,7 +4,7 @@
+ 
+ Mortar is a deterministic composition engine with LLM-guided planning. It assembles deployable Spring Boot + React internal tools from a registry of tested modules, generates only the app-specific remainder with an LLM, and **measures how registry coverage affects token cost and first-pass build success**.
+ 
+-> Status: Week 1 of 9 (specs, benchmark design, validator, Baseline A). No benchmark results yet; this README gets its results table when real numbers exist.
++> Status: Week 5 of 9. The pipeline (plan, select, assemble, compose, validate, repair) is built and tested with fakes; **it has not yet run against a real model, so there are no benchmark results.** This README gets its results table when real numbers exist. Current state: [`docs/PROGRESS.md`](docs/PROGRESS.md).
+ 
+ The full contract is in [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
+ 
+@@ -20,8 +20,14 @@ The full contract is in [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md).
+ | Coverage ablation logic (k = 0/2/4/6) | `orchestrator/mortar/engine/coverage.py` | implemented, tested |
+ | `SKILL.md` budget checker | `tools/check_skill_budget.py` | implemented, tested |
+ | Baseline A (single agent) | `evaluator/baselines/single_agent.py` | implemented, tested with a fake model; **not yet run against a real model** |
+-| Oracles | | not started |
+-| Registry (6 modules, all green on CI), React template, Selector, Assembler, Planner, Composer, MCP server | | built; real-model run pending |
++| Registry: 6 modules (jwt, rbac, audit, pagination, csv, docker) | `registry/` | built, green on CI |
++| React admin template | `templates/react-admin-v1/` | built; unit and render tests pass locally, CI job not yet run |
++| Selector (deterministic), Assembler, registry loader | `orchestrator/mortar/engine/`, `registry/` | implemented, tested |
++| Planner, Composer, repair agent (LLM) | `orchestrator/mortar/agents/` | implemented, tested with a fake model only |
++| Validation stage (Maven, Docker, health check) | `orchestrator/mortar/validation/` | implemented, tested with scripted command output only |
++| Reuse-violation checker and LOC metrics | `orchestrator/mortar/engine/reuse.py` | implemented, tested |
++| MCP server (`search_components`, `get_skill`, `get_dependencies`) | `mcp-server/` | implemented, tested over stdio |
++| Baselines B and C, oracles, benchmark runner | | not started |
+ 
+ ## Try it
+ 
+@@ -31,14 +37,19 @@ pip install -e ".[dev]"
+ python -m pytest                                   # full suite
+ 
+ python -m mortar.cli validate tests/fixtures/crm-01.blueprint.yaml
++python -m mortar.cli select tests/fixtures/crm-01.blueprint.yaml --k 4     # which modules are wired, what is uncovered
++python -m mortar.cli assemble tests/fixtures/crm-01.blueprint.yaml --out ../runs/crm-demo
+ python ../tools/check_skill_budget.py ../docs/examples/SKILL.example.md
+ 
+ cd ..
+ python -m evaluator.baselines.single_agent crm-01 --dry-run   # prints the exact prompt Baseline A sends
+ 
+-# real run (pip install -e "orchestrator[llm]"; set the pinned model first)
++# real runs (pip install -e "orchestrator[llm]"; set the pinned model first)
+ export MORTAR_MODEL=<model id>   # plus your provider's API key
+ python -m evaluator.baselines.single_agent crm-01 --out runs/crm-01__A__s1
++
++# full pipeline: plan -> select -> assemble -> compose; --validate also builds, starts and repairs (needs Maven, Docker)
++mortar generate --prompt "Build a CRM with contacts, deals and notes" --out runs/crm-try --k 6 --validate
+ ```
+ 
+ ## Limitations (so far)
+diff --git a/docs/DECISIONS.md b/docs/DECISIONS.md
+index 7cc791d..82c3ed3 100644
+--- a/docs/DECISIONS.md
++++ b/docs/DECISIONS.md
+@@ -59,3 +59,5 @@ Short records of choices that are costly to rediscover. Add one when a decision
+ **D28. Reuse violations are static, per selected module, and declared by the module (`owns.imports`).** Every v1 module lists the library package prefixes it owns in `metadata.yaml` (JWT libraries for `authentication.jwt`, method-security packages for `authorization.rbac`, Envers and Javers for `audit.logging`, Spring Data REST for `crud.pagination`, CSV libraries for `export.csv`, Flyway for `deployment.docker`); the schema gained the optional `owns` object. `check_reuse` flags, in the Java the model wrote: an import under a selected module's owned prefix, a type declared with the simple name of a selected module's `provides.interface`, and a method returning `SecurityFilterChain` when `authentication.jwt` is selected. It works on comment- and string-stripped source so a mention in a comment is not a violation, and it reports file, line and the offending name. Modules that were not selected own nothing, so the same code is a violation at k=6 and not at k=0. The Assembler's own files are not checked (the Composer's are; those are what the metric is about). Reuse LOC uses a versioned counter (`loc-1`); `generate` writes `reuse_violations`, their details and `reuse{reused_loc, generated_loc, reuse_rate_loc}` into `run.json`. Trade-offs: it is name- and import-based, so a reimplementation under a new name (a hand-rolled JWT with the JDK's `javax.crypto`) is not caught, and a violation list is a lower bound; the limitations section must say so. `reuse_rate_tokens` is not implemented yet (needs the fixed tokenizer decision). Registry modules' metadata changed (the `owns` block only) before any benchmark run references them, which `module-spec.md` section 7 allows.
+ 
+ **D29. Validation runs cheapest-first, stops at the first failing stage, and repair is the Composer with build errors.** Stages: install the vendored modules (`mvn -Dmaven.test.skip=true`), `mvn verify` on the app (`-Dmaven.test.failure.ignore=true`: compile errors fail the build, tests the model wrote need not pass, as `benchmark-design.md` section 6 says), `docker compose build`, then `docker compose up -d` and poll `http://localhost:8080/actuator/health` for `UP` for at most 120 s; `docker compose down -v` always runs. This order differs from the order the spec lists them in, because Maven reports `file:line` errors that make repair prompts precise and fail in seconds, while the image build repeats the same compile later. A project without `docker-compose.yml` fails immediately (an app with no compose file cannot meet `build_success`). `.env` is created from `.env.example` with a throwaway JWT secret that exists only for validation. Commands run through an injectable `CommandRunner`, so every stage and failure path is unit-tested with a scripted fake; the real runner is a thin `subprocess` wrapper. Build output becomes structured `BuildError`s (`java-compile` with project-relative path and line, `dependency-resolution`, `docker-build`, `startup-health`, `timeout`, `tool-missing`, `build-other`), which feed both the repair prompt and the failure-mode counts. Repair (`agents/repairer.py`) gets the error digest (capped), the full text of only the Composer files the errors name (capped), the list of everything else it wrote and the same path rules, so it can overwrite its own files but never an Assembler file. At most 2 iterations (`PROJECT_CONTEXT.md`); a rejected repair (bad path, malformed output) still consumes an iteration and its tokens are counted (`ComposeError` and `PlanError` now carry the usage of the call that produced them, so a failed call's cost is never lost). `first_pass_build` is recorded from the first validation before any repair; the reuse check runs on the final files, so a repair that introduces a violation is counted. `run.json` now has `build_success` (null when validation was not requested), `first_pass_build`, `repair_iterations`, `tokens.repair`, `validation_stages` and `errors`. Not verified: any real Maven, Docker or model run. The stages, the javac output format and the health check are tested against scripted output only; the first real run (`mortar generate --validate`) will likely expose format and timing issues.
++
++**D30. First-real-run hardening of the validation stage (found by code review, not by a run).** (1) `parse_maven` now turns backslashes into `/` before shortening a path to `backend/...`, and the javac regex accepts spaces in the path: on the owner's Windows machine javac prints `C:\Users\...\backend\src\...`, which previously stayed absolute, so the repair prompt never matched a blamed file to a Composer file and said "(no listed file is yours)". (2) `SubprocessRunner` resolves the executable with `shutil.which` first: on Windows `mvn` is `mvn.cmd` and a bare name is not found by `subprocess` without a shell, which would have reported `tool-missing` for a working install. A truly missing tool still returns 127. (3) The 120 s health deadline now starts after `docker compose up -d` returns, not before it, so a slow `up` no longer eats the startup budget. (4) A repair the Composer's path rules reject changes nothing on disk, so the pipeline skips the Maven and Docker rebuild that would repeat the same failure; the rejected attempt still costs an iteration and its tokens (D29 is unchanged on that point). Consequence: `run.json` for a run with a rejected repair shows fewer validations than iterations. Verified by 4 new tests in `tests/test_validation.py`; the real Windows run is still unverified.
+diff --git a/docs/PROGRESS.md b/docs/PROGRESS.md
+index 82ed03e..29ce072 100644
+--- a/docs/PROGRESS.md
++++ b/docs/PROGRESS.md
+@@ -1,63 +1,60 @@
+ # Progress
+ 
+-Single source of truth for "where are we". Update at the end of every task. Keep it short; history lives in `git log`.
++Single source of truth for "where are we". Update at the end of every task. Keep it short; reasoning lives in `docs/DECISIONS.md`, history in `git log`.
+ 
+-**Last updated:** 2026-11-10 · **Current phase:** Week 4 of 9 (pipeline + MCP server) · **Python tests:** 417 passing (`cd orchestrator && python -m pytest -q`)
++**Last updated:** 2026-11-12 · **Current phase:** Week 5 of 9 (validation done, oracles next) · **Python tests:** run `cd orchestrator && python -m pytest -q` and write the count here (the last recorded count, 417 on 2026-11-10, predates the Week 5 commits)
+ 
+ ## Plan status (from `PROJECT_CONTEXT.md` §16)
+ 
+ | Week | Focus | Status |
+ |---|---|---|
+-| 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
+-| 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **Done:** all three green on CI (Boot 4.1.1) |
+-| 3 | Registry part 2 + React template | **Done:** all 6 modules and the React template. Java modules green on CI; the template is verified here (41 tests, build, real-browser run) but its CI job has not run yet |
+-| 4 | Pipeline + MCP server | **In progress:** registry loader, naming, Selector, event log, `mortar select` done (D24). Assembler and `mortar assemble` done (D25; compose config valid, generated frontend builds and passes its tests). Planner, Composer, `LitellmClient`, `pipeline.generate` and `mortar generate` done (D26; **fake model only, never run against a real one**). MCP server done (D27: three read-only tools, tested over stdio). **Week 4 code complete.** Week 5: reuse checker and LOC metrics (D28), validation stage and bounded repair (D29, scripted tests only) done. Open: a real model run of `mortar generate` |
+-| 5 | Validation, repair, **oracles written and frozen** | Not started |
++| 1 | Specs, 8 prompts, validator, Baseline A | Done. Open: Baseline A has never run against a real model |
++| 2 | Registry part 1 (jwt, rbac, pagination) | Done, green on CI |
++| 3 | Registry part 2 + React template | Done. Java modules green on CI; the template's CI job has not run yet |
++| 4 | Pipeline + MCP server | Code complete (D24-D27): loader, Selector, Assembler, Planner, Composer, `mortar generate`, MCP server |
++| 5 | Validation, repair, oracles | **In progress.** Done: reuse checker + LOC (D28), validation stage + bounded repair (D29), first-real-run hardening (D30). Not started: run-record writer, `reuse_rate_tokens`, the 8 oracles, freeze |
+ | 6 | Baselines B and C, 1-seed pilot, pin model | Not started |
+ | 7 | Benchmark (168 runs) | Not started |
+ | 8-9 | Analysis, report, demo, README | Not started |
+ 
++## The one big risk
++
++**Nothing has run against a real model, real Maven, or real Docker.** Baseline A, `mortar generate` and the validation stage are tested only with fakes and scripted command output. D30 fixed four things found by reading the code (Windows paths, `mvn.cmd` lookup, the health clock, wasted rebuilds), but the first real run will find more. Do this run before writing oracles: oracles frozen against output shapes that later change are expensive to redo.
++
+ ## What exists and works
+ 
+-- Specs: `docs/blueprint-spec.md`, `docs/module-spec.md`, `docs/benchmark-design.md`; schemas in `schemas/`.
+-- 8 benchmark prompts with acceptance criteria: `evaluator/benchmark/prompts/`.
+-- Blueprint validator (schema + 12 semantic rules) and `mortar validate` CLI.
+-- Coverage ablation logic (k = 0/2/4/6, primary and alternate orders): `orchestrator/mortar/engine/coverage.py`.
+-- `SKILL.md` budget checker: `tools/check_skill_budget.py`.
+-- Baseline A (`evaluator/baselines/single_agent.py`) with run-record invariants; tested with a fake model.
+-- CI workflow (`.github/workflows/ci.yml`): Python tests, example blueprint, SKILL.md budgets, and a `java` job that runs `mvn verify` on every `registry/*/module`.
+-- `registry/authentication.jwt/`: Java source (token service, filter, login controller, auto-configuration), JUnit tests, `metadata.yaml`, `SKILL.md` (about 311 tokens by an upper-bound count), `config-schema.json`, example config.
+-- `orchestrator/tests/test_registry.py`: checks every module's layout, metadata, SKILL.md, config schema, example config, provided interfaces and POM against the spec (no Java needed).
+-
+-## Not done / known gaps
+-
+-- Baseline A never run for real (no API key yet). Exit criterion for Week 1 is open until it is.
+-- Token counting uses chars/4 unless `tiktoken` is installed (CI installs it). Pin one counter before the benchmark.
+-- `authentication.jwt` is only verified by CI (run 2: compiles, 24/26 tests pass). The assistant sandbox cannot reach Maven Central, so never claim it passes without a CI or local `mvn verify` result.
+-- **`authentication.jwt` is green on CI (Boot 4.1.1, 26 tests).** The CORS bug was that MVC's `HandlerMappingIntrospector` is already a `CorsConfigurationSource`, so the CORS source is now built inline, not a bean (D18).
+-- **`authentication.jwt` and `authorization.rbac` are green on CI (2026-11-04, Boot 4.1.1).** RBAC needed `@PathVariable("id")` in its test controller because module POMs do not use the Boot parent (`-parameters` is off); `crud.pagination` sets `maven.compiler.parameters` for the same reason. CI runs `mvn install` per module so rbac can resolve `com.mortar:jwt-auth` (D19).
+-- **`crud.pagination` is green on CI (2026-11-04).** JPA on H2 with Hibernate 7 and Spring Data JPA 4 worked first time.
+-- **`audit.logging` is green on CI (2026-11-05).** A first run failed only because CI built modules alphabetically and `audit.logging` sorted before `authentication.jwt`; CI now builds jwt first (D19).
+-- **`export.csv` is green on CI (2026-11-06).**
+-- **`deployment.docker` is green on CI (2026-11-07).** Not yet run anywhere: `docker compose up` and both image builds. The backend image cannot build a generated app until the Assembler vendors the `com.mortar:*` module jars into `backend/` (D22).
+-- **`templates/react-admin-v1` verified in the sandbox, not yet on CI:** `npm ci`, `npm run build`, 41 Vitest tests (unit tests plus full-app render tests against a mocked backend) and a Playwright run of the built app against a fake backend that follows the API contract (login, sidebar, 25-row paginated table, admin sees Create and Export, viewer does not). Never run against the real Spring backend: the first full-stack run happens when the Assembler exists (Week 4). `npm audit` reports 0 production vulnerabilities only because of an `overrides` entry for `decode-uri-component` (D23).
+-- `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
+-- SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
+-- No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
+-- Nothing yet checks `module/` Java against `metadata.yaml`.
+-- The reuse checker is import and name based; a reimplementation under a new name is not caught (D28). `reuse_rate_tokens` is not implemented.
++- Specs (`docs/*.md`), schemas, 8 benchmark prompts with acceptance criteria, blueprint validator (schema + semantic rules), coverage ablation logic, `SKILL.md` budget checker.
++- Registry: 6 modules (`authentication.jwt`, `authorization.rbac`, `audit.logging`, `crud.pagination`, `export.csv`, `deployment.docker`), all green on CI (Boot 4.1.1, 2026-11-04 to 2026-11-07), plus `templates/react-admin-v1` (41 Vitest tests, build and a Playwright run verified in the sandbox against a fake backend).
++- Orchestrator: model client (`LitellmClient`), Planner, Selector, Assembler, Composer, Repairer, reuse checker, validation stage, event log (JSONL), `mortar validate | select | assemble | generate`.
++- MCP server: `search_components`, `get_skill`, `get_dependencies`, tested over stdio.
++- `run.json` per generate run: tokens per stage, cost, modules, uncovered, reuse metrics and violations, `build_success`, `first_pass_build`, `repair_iterations`, validation stages, structured errors.
++- CI: Python tests, example blueprint, SKILL.md budgets, `mvn verify` per module, frontend job.
++
++## Known gaps
++
++- Never run for real: Baseline A, `mortar generate`, `--validate`, `docker compose up`, the backend image build of a generated app, the full stack with the React template. Java module results are only ever claimed from CI or a local `mvn verify`; the assistant sandbox cannot reach Maven Central.
++- `run.json` lacks fields `benchmark-design.md` §6 requires for a `RunRecord`: `prompt_id`, `strategy`, `seed`, `generation_time_s`, `first_pass_success` (needs oracle results), `coverage`, `reuse_rate_tokens`. A run-record writer is the next Week 5 task.
++- `mortar.agents.composer` imports `evaluator.common` (shared contract loader). That works from the repo (pytest adds `..` to the path) but not for a pip-installed `mortar`, because `pyproject.toml` packages only `mortar*`. Fine for the benchmark; move the helper into `mortar/` before any packaging.
++- Reuse checker is import and name based; a reimplementation under a new name is not caught (D28).
++- Token counting uses chars/4 unless `tiktoken` is installed (CI installs it). Pin one counter before the pilot.
++- `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md`; the registry file is authoritative.
++- Nothing checks `module/` Java against `metadata.yaml`.
+ - Name `mortar` not checked for availability on PyPI.
++- `docs/results.md` (in the §12 layout) does not exist yet; it is created with the first results.
+ 
+ ## Environment notes
+ 
+-- Assistant sandbox has Java 21, Maven 3.9, Node 22, Docker, but **Maven Central is not reachable from it** (checked 2026-11-02). Java modules can be written there but not built or tested. The owner must run `mvn verify` locally and report results; never claim a Java module "passes" without that.
+-- Owner needs JDK 21 and Maven 3.9+ on the Windows machine (and Docker Desktop later, for Testcontainers).
+-- Authoring machine is Windows (`cmd`): do not put `#` comments on command lines when giving commands.
++- Assistant sandbox has Java 21, Node 22, Docker, but **Maven Central is not reachable** and it has no `pytest` or `jsonschema` installed, so the assistant cannot run the full suite. Never claim a Java module or the full Python suite passes without your own run or CI.
++- Owner machine: Windows. Do not put `#` comments on command lines given to `cmd`. Needs JDK 21, Maven 3.9+, Docker Desktop (for validation and Testcontainers), Node 22.
+ - Repo: https://github.com/Abhaydeep1410/mortar, branch `main`.
+ 
+ ## Next steps (in order)
+ 
+-1. **Owner:** push the validation commits; check CI is green.
+-2. Week 5 remaining: the run-record writer (`RunRecord` shape from `benchmark-design.md` section 6, from `run.json` plus the invariants check), `reuse_rate_tokens`, and the 8 oracles (JUnit + RestAssured API suites, a Playwright smoke) with a shared harness, then freeze.
+-3. First real run, on your machine (needs Maven, Docker, Java 21, an API key and `MORTAR_MODEL`): `mortar generate --prompt-file <file> --out <dir> --k 6 --validate`. Paste the failure and I will fix the validation stage or the prompts.
+-4. Still open from Week 4: the Claude Code `claude mcp add` check.
++1. **Owner:** run `cd orchestrator && python -m pytest -q` (D30 touched `pipeline.py`, `errors.py`, `runner.py`, `validate.py` and added 4 tests), commit, push, check CI. Record the test count above.
++2. **First real run** (needs Maven, Docker, JDK 21, an API key, `MORTAR_MODEL`). Start without Docker cost by using `--k 6` and no `--validate`, check that the Planner and Composer produce sane output, then add `--validate`:
++   `mortar generate --prompt-file evaluator\benchmark\prompts\crm-01.yaml --out runs\crm-01-try1 --k 6`
++   (`--prompt-file` expects plain text, so put the prompt text from the YAML's `prompt` field into a `.txt` file first.) Paste any failure and fix the stage or the prompts.
++3. Run Baseline A on `crm-01` for real (closes the Week 1 exit criterion).
++4. Run-record writer (`RunRecord` from `benchmark-design.md` §6) and `reuse_rate_tokens`.
++5. The 8 oracles (JUnit + RestAssured API suites, Playwright smoke) with a shared harness; then freeze prompts and oracles.
++6. Still open from Week 4: the `claude mcp add` check against Claude Code.
+diff --git a/orchestrator/mortar/pipeline.py b/orchestrator/mortar/pipeline.py
+index d3c8fb2..c9bd029 100644
+--- a/orchestrator/mortar/pipeline.py
++++ b/orchestrator/mortar/pipeline.py
+@@ -85,6 +85,7 @@ def generate(
+                 if exc.usage is not None:
+                     repair_usages.append(exc.usage)
+                 log.emit("repair_rejected", iteration=iterations, reason=str(exc))
++                continue  # nothing changed on disk, so a rebuild would repeat the same failure
+             else:
+                 repair_usages.append(fix.usage)
+                 files.update(fix.files)
+diff --git a/orchestrator/mortar/validation/errors.py b/orchestrator/mortar/validation/errors.py
+index a11326b..1908d88 100644
+--- a/orchestrator/mortar/validation/errors.py
++++ b/orchestrator/mortar/validation/errors.py
+@@ -8,7 +8,7 @@ from dataclasses import dataclass
+ MAX_ERRORS = 20
+ TAIL_LINES = 40
+ 
+-JAVAC = re.compile(r"\[ERROR\]\s+(?P<path>\S+\.java):\[(?P<line>\d+),(?P<col>\d+)\]\s+(?P<message>.*)")
++JAVAC = re.compile(r"\[ERROR\]\s+(?P<path>.+?\.java):\[(?P<line>\d+),(?P<col>\d+)\]\s+(?P<message>.*)")
+ DETAIL = re.compile(r"\[ERROR\]\s{3,}(?P<detail>\S.*)")
+ 
+ 
+@@ -22,6 +22,7 @@ class BuildError:
+ 
+ def _relative(path: str) -> str:
+     """Project-relative path: everything from the `backend/` directory on, else the file as given."""
++    path = path.replace("\\", "/")  # Windows javac prints backslashes
+     index = path.find("backend/")
+     return path[index:] if index != -1 else path
+ 
+diff --git a/orchestrator/mortar/validation/runner.py b/orchestrator/mortar/validation/runner.py
+index bc6196a..0a6b454 100644
+--- a/orchestrator/mortar/validation/runner.py
++++ b/orchestrator/mortar/validation/runner.py
+@@ -2,6 +2,7 @@
+ 
+ from __future__ import annotations
+ 
++import shutil
+ import subprocess
+ from collections.abc import Mapping, Sequence
+ from dataclasses import dataclass
+@@ -28,9 +29,11 @@ class SubprocessRunner:
+     def run(self, args: Sequence[str], cwd: Path, timeout_s: float, env: Mapping[str, str] | None = None) -> CommandResult:
+         import os
+ 
++        # Windows: `mvn` is mvn.cmd and `docker` is docker.exe; CreateProcess only finds .exe by bare name.
++        command = [shutil.which(args[0]) or args[0], *list(args)[1:]]
+         try:
+             done = subprocess.run(
+-                list(args), cwd=cwd, env={**os.environ, **(env or {})}, capture_output=True, text=True,
++                command, cwd=cwd, env={**os.environ, **(env or {})}, capture_output=True, text=True,
+                 timeout=timeout_s, errors="replace",
+             )
+         except subprocess.TimeoutExpired as exc:
+diff --git a/orchestrator/mortar/validation/validate.py b/orchestrator/mortar/validation/validate.py
+index d0b42b7..f56ee12 100644
+--- a/orchestrator/mortar/validation/validate.py
++++ b/orchestrator/mortar/validation/validate.py
+@@ -107,7 +107,7 @@ def validate_project(
+         if not up.ok:
+             record("compose-up", False, started)
+             return ValidationResult(False, tuple(stages), tuple(classify("startup", up.output, up.timed_out, up.returncode)))
+-        deadline = started + health_deadline_s
++        deadline = clock() + health_deadline_s  # the clock starts once `up` has returned
+         while True:
+             if health():
+                 record("health", True, started)
+diff --git a/orchestrator/tests/test_validation.py b/orchestrator/tests/test_validation.py
+index 4d944bf..857b891 100644
+--- a/orchestrator/tests/test_validation.py
++++ b/orchestrator/tests/test_validation.py
+@@ -277,3 +277,51 @@ def test_repair_prompt_shows_only_blamed_composer_files():
+ def test_compose_error_carries_usage():
+     err = ComposeError("x", Usage(1, 2, 0.3))
+     assert err.usage.cost_usd == 0.3 and ComposeError("y").usage is None
++
++
++# ---- first-real-run hardening (Windows paths, executable lookup, health clock, rejected repair) ----
++
++WINDOWS_JAVAC = (
++    "[ERROR] C:\\Users\\Abhay Deep\\runs\\crm\\backend\\src\\main\\java\\com\\example\\crm\\Deal.java:[7,3] "
++    "cannot find symbol\n[ERROR]   symbol:   class Foo\n"
++)
++
++
++def test_parse_maven_handles_windows_paths_with_spaces():
++    (error,) = parse_maven(WINDOWS_JAVAC)
++    assert error.path == "backend/src/main/java/com/example/crm/Deal.java" and error.line == 7
++
++
++def test_subprocess_runner_resolves_the_executable_through_path(monkeypatch, tmp_path):
++    import sys
++
++    from mortar.validation import runner as runner_module
++
++    monkeypatch.setattr(runner_module.shutil, "which", lambda name: sys.executable if name == "fake-mvn" else None)
++    result = runner_module.SubprocessRunner().run(["fake-mvn", "-c", "print('hi')"], tmp_path, 30)
++    assert result.ok and result.output.strip() == "hi"
++    missing = runner_module.SubprocessRunner().run(["definitely-not-installed-xyz"], tmp_path, 30)
++    assert missing.returncode == 127
++
++
++def test_health_deadline_starts_after_compose_up_returns(tmp_path):
++    clock = Clock()
++
++    class SlowUp(FakeRunner):
++        def run(self, args, cwd, timeout_s, env=None):
++            if "up" in args:
++                clock.now += 100  # a slow `docker compose up -d`
++            return super().run(args, cwd, timeout_s, env)
++
++    polls = iter([False, False, True])
++    result = validate_project(project(tmp_path), SlowUp(), health=lambda: next(polls), clock=clock,
++                              sleep=clock.sleep, health_deadline_s=10)
++    assert result.build_success
++
++
++def test_rejected_repair_is_not_revalidated(registry, tmp_path):
++    bad = {"files": [{"path": "backend/pom.xml", "content": "<project/>"}]}
++    client = ScriptedClient(blueprint_response(), files(**{"A.java": "x"}), bad, bad)
++    validator = validator_returning(FAIL)
++    record = generate("p", tmp_path / "o", client, registry, k=6, validator=validator)
++    assert len(validator.calls) == 1 and record["repair_iterations"] == 2 and record["build_success"] is False

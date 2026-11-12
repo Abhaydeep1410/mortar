@@ -85,6 +85,7 @@ def generate(
                 if exc.usage is not None:
                     repair_usages.append(exc.usage)
                 log.emit("repair_rejected", iteration=iterations, reason=str(exc))
+                continue  # nothing changed on disk, so a rebuild would repeat the same failure
             else:
                 repair_usages.append(fix.usage)
                 files.update(fix.files)

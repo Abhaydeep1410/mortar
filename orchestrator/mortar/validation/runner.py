@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -28,9 +29,11 @@ class SubprocessRunner:
     def run(self, args: Sequence[str], cwd: Path, timeout_s: float, env: Mapping[str, str] | None = None) -> CommandResult:
         import os
 
+        # Windows: `mvn` is mvn.cmd and `docker` is docker.exe; CreateProcess only finds .exe by bare name.
+        command = [shutil.which(args[0]) or args[0], *list(args)[1:]]
         try:
             done = subprocess.run(
-                list(args), cwd=cwd, env={**os.environ, **(env or {})}, capture_output=True, text=True,
+                command, cwd=cwd, env={**os.environ, **(env or {})}, capture_output=True, text=True,
                 timeout=timeout_s, errors="replace",
             )
         except subprocess.TimeoutExpired as exc:

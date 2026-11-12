@@ -107,7 +107,7 @@ def validate_project(
         if not up.ok:
             record("compose-up", False, started)
             return ValidationResult(False, tuple(stages), tuple(classify("startup", up.output, up.timed_out, up.returncode)))
-        deadline = started + health_deadline_s
+        deadline = clock() + health_deadline_s  # the clock starts once `up` has returned
         while True:
             if health():
                 record("health", True, started)
