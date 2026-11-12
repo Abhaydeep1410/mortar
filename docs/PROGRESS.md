@@ -2,7 +2,7 @@
 
 Single source of truth for "where are we". Update at the end of every task. Keep it short; reasoning lives in `docs/DECISIONS.md`, history in `git log`.
 
-**Last updated:** 2026-11-12 · **Current phase:** Week 5 of 9 (validation done, oracles next) · **Python tests:** run `cd orchestrator && python -m pytest -q` and write the count here (the last recorded count, 417 on 2026-11-10, predates the Week 5 commits)
+**Last updated:** 2026-11-12 · **Current phase:** Week 5 of 9 (validation done, oracles next) · **Python tests:** 420 passed, 0 skipped (2026-11-12, Python 3.12, Windows, extras: dev, tokens, llm, mcp)
 
 ## Plan status (from `PROJECT_CONTEXT.md` §16)
 
@@ -50,7 +50,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. **Owner:** run `cd orchestrator && python -m pytest -q` (D30 touched `pipeline.py`, `errors.py`, `runner.py`, `validate.py` and added 4 tests), commit, push, check CI. Record the test count above.
+1. ~~Owner: run the suite~~ Done 2026-11-12: 420 passed locally on Windows. Still to do: push and check CI.
 2. **First real run** (needs Maven, Docker, JDK 21, an API key, `MORTAR_MODEL`). Start without Docker cost by using `--k 6` and no `--validate`, check that the Planner and Composer produce sane output, then add `--validate`:
    `mortar generate --prompt-file evaluator\benchmark\prompts\crm-01.yaml --out runs\crm-01-try1 --k 6`
    (`--prompt-file` expects plain text, so put the prompt text from the YAML's `prompt` field into a `.txt` file first.) Paste any failure and fix the stage or the prompts.
