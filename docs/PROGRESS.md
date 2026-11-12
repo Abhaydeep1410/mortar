@@ -2,7 +2,7 @@
 
 Single source of truth for "where are we". Update at the end of every task. Keep it short; history lives in `git log`.
 
-**Last updated:** 2026-11-10 · **Current phase:** Week 4 of 9 (pipeline + MCP server) · **Python tests:** 369 passing (`cd orchestrator && python -m pytest -q`)
+**Last updated:** 2026-11-10 · **Current phase:** Week 4 of 9 (pipeline + MCP server) · **Python tests:** 392 passing (`cd orchestrator && python -m pytest -q`)
 
 ## Plan status (from `PROJECT_CONTEXT.md` §16)
 
@@ -11,7 +11,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 | 1 | Specs, 8 prompts, validator, Baseline A | **Done, with one gap:** Baseline A has not run against a real model |
 | 2 | Registry part 1: `authentication.jwt`, `authorization.rbac`, `crud.pagination` | **Done:** all three green on CI (Boot 4.1.1) |
 | 3 | Registry part 2 + React template | **Done:** all 6 modules and the React template. Java modules green on CI; the template is verified here (41 tests, build, real-browser run) but its CI job has not run yet |
-| 4 | Pipeline + MCP server | **In progress:** registry loader, naming, Selector, event log, `mortar select` done (D24). Assembler and `mortar assemble` done (D25; compose config valid, generated frontend builds and passes its tests). Planner, Composer, `LitellmClient`, `pipeline.generate` and `mortar generate` done (D26; **fake model only, never run against a real one**). MCP server done (D27: three read-only tools, tested over stdio). **Week 4 code complete.** Open: a real model run of `mortar generate` |
+| 4 | Pipeline + MCP server | **In progress:** registry loader, naming, Selector, event log, `mortar select` done (D24). Assembler and `mortar assemble` done (D25; compose config valid, generated frontend builds and passes its tests). Planner, Composer, `LitellmClient`, `pipeline.generate` and `mortar generate` done (D26; **fake model only, never run against a real one**). MCP server done (D27: three read-only tools, tested over stdio). **Week 4 code complete.** Week 5 started: reuse-violation checker and reuse LOC metrics done (D28). Open: a real model run of `mortar generate` |
 | 5 | Validation, repair, **oracles written and frozen** | Not started |
 | 6 | Baselines B and C, 1-seed pilot, pin model | Not started |
 | 7 | Benchmark (168 runs) | Not started |
@@ -44,7 +44,8 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 - `docs/examples/SKILL.example.md` is older than `registry/authentication.jwt/SKILL.md` (it still mentions a PostgreSQL user table). The registry file is authoritative.
 - SKILL.md token counts are approximate (tiktoken could not download its vocabulary in the sandbox). Real counts for code-heavy text can exceed chars/4; CI uses tiktoken and will show the real number.
 - No oracles, `authorization.rbac`, `crud.pagination`, other modules, pipeline, MCP server, React template, or Baselines B/C.
-- Nothing yet checks `module/` Java against `metadata.yaml`; `owns:` field for reuse-violation detection is specified but not in the schema (Week 5).
+- Nothing yet checks `module/` Java against `metadata.yaml`.
+- The reuse checker is import and name based; a reimplementation under a new name is not caught (D28). `reuse_rate_tokens` is not implemented.
 - Name `mortar` not checked for availability on PyPI.
 
 ## Environment notes
@@ -56,6 +57,6 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. **Owner:** push the MCP commits and check CI is green. Then, optional, in Claude Code: `pip install -e "orchestrator[mcp]"` and `claude mcp add mortar -- python <repo>/mcp-server/server.py`, ask "search_components auth" (that is the Week 4 exit check; not done by me).
-2. Week 4 exit criterion still open: `mortar generate` on 3 prompts with a real model (needs an API key and `MORTAR_MODEL`). Expect prompt fixes after the first run.
-3. Week 5: build, test and repair stage (first check that a generated backend compiles and images build), reuse-violation check, and the oracles (hand-written, then frozen).
+1. **Owner:** push the reuse checker commits; check CI is green.
+2. Week 5 remaining: the validation stage (`docker compose build`, `mvn verify`, `docker compose up` health check, with bounded repair <= 2), `reuse_rate_tokens`, run-record writer, and the 8 oracles (JUnit + RestAssured API suites and a Playwright smoke), then freeze. The sandbox has no Maven Central, so the validation stage can only be unit-tested here; its first real run is on your machine or a CI job with Docker.
+3. Week 4 exit check still open: `mortar generate` with a real model on 3 prompts (API key and `MORTAR_MODEL` needed), and the Claude Code `claude mcp add` check.

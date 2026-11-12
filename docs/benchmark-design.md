@@ -94,7 +94,7 @@ Definitions:
 - **first_pass_success:** build_success **and** oracle pass-rate = 100% **with zero repair iterations** and zero reuse violations. A stricter flag, `first_pass_build`, records build-only first pass.
 - **oracle:** hand-written JUnit (API) + Playwright (UI smoke) results; every acceptance criterion maps to ≥1 test; `by_criterion` records pass/fail per criterion ID.
 - **coverage:** see `blueprint-spec.md` §4. Baselines A/B: 0. Baseline C: coverage is computed post-hoc from which module artifacts it actually used.
-- **reuse_rate_loc** = `reused_module_LOC / (reused_module_LOC + generated_LOC)`; module LOC counts non-blank, non-comment Java/XML/YAML source of modules actually wired in. `generated_LOC` counts the same for model-written files. Reported with its counter version.
+- **reuse_rate_loc** = `reused_module_LOC / (reused_module_LOC + generated_LOC)`; module LOC counts non-blank, non-comment Java/XML/YAML source of modules actually wired in. `generated_LOC` counts the same for model-written files. Reported with its counter version (`loc-1`, `orchestrator/mortar/engine/reuse.py`): module LOC covers every `.java`, `.xml`, `.yml` and `.yaml` file under the module's `module/` directory (including its `pom.xml`, excluding tests and build output); `generated_LOC` covers the same file types among the model-written files, so a Dockerfile or SQL migration counts for neither. Java comments (line and block) are excluded.
 - **reuse_rate_tokens** = token-equivalent of reused code divided by that plus generated output tokens, using one fixed tokenizer recorded in the run.
 - **reuse_violations:** count from the post-generation checker (`module-spec.md` §6). Any violation clears `first_pass_success`.
 

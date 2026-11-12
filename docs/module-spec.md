@@ -71,7 +71,7 @@ Each module may declare, in `metadata.yaml` (optional extension, `owns:`), the i
 - declares a type with the same simple name as a selected module's `provides.interface`, or
 - defines a second `SecurityFilterChain` bean when `authentication.jwt` is selected.
 
-(The `owns:` extension is added to the schema when the checker is built in Week 5.)
+`owns.imports` is a list of package prefixes ending in `.` (schema `module-metadata.schema.json`); every v1 module declares it (a test checks). The checker is `orchestrator/mortar/engine/reuse.py`. Comments and string literals are ignored; only the Java the model wrote is checked, against the modules actually selected. Using a module (extending `CrudController`, importing its types) is never a violation. Legitimate Spring Security use (a `UserDetailsService`, for example) is not owned by any module.
 
 ## 7. Versioning and change policy
 
