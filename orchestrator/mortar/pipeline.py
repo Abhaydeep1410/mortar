@@ -15,6 +15,7 @@ from .agents.planner import plan
 from .engine.assembler import assemble, write_generated
 from .engine.blueprint_hash import blueprint_sha256
 from .engine.coverage import modules_for_k
+from .engine.reuse import check_reuse, reuse_metrics
 from .engine.selector import select
 from .engine.vocab import ABLATION_ORDER_PRIMARY
 from .events import EventLog
@@ -57,6 +58,11 @@ def generate(
     write_generated(out_dir, composed.files, log)
     log.emit("composed", files=len(composed.files), **_totals([composed.usage]))
 
+    wired = [registry[m] for m in selection.active]
+    violations = check_reuse(composed.files, wired)
+    reuse = reuse_metrics(composed.files, wired)
+    log.emit("reuse_checked", violations=[v.__dict__ for v in violations], **reuse)
+
     record = {
         "run_id": run_id,
         "model": client.model,
@@ -67,6 +73,9 @@ def generate(
         "tokens": {"planning": _totals(planned.usages), "generation": _totals([composed.usage])},
         "cost_usd": sum(u.cost_usd for u in (*planned.usages, composed.usage)),
         "files": {"assembled": len(assembled.files), "composed": len(composed.files)},
+        "reuse_violations": len(violations),
+        "reuse_violation_details": [v.__dict__ for v in violations],
+        "reuse": reuse,
         "built": False,
     }
     (out_dir / "run.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")

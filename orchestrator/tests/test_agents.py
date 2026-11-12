@@ -149,7 +149,7 @@ def test_pipeline_end_to_end_with_a_fake_model(registry, tmp_path):
     assert json.loads((out / "run.json").read_text())["built"] is False
     events = [json.loads(line) for line in (tmp_path / "ev.jsonl").read_text().splitlines()]
     assert [e["seq"] for e in events] == list(range(1, len(events) + 1))
-    assert events[0]["kind"] == "planned" and events[-1]["kind"] == "composed"
+    assert events[0]["kind"] == "planned" and events[-1]["kind"] == "reuse_checked"
     assert len({e["blueprint_sha256"] for e in events}) == 1 and events[0]["blueprint_sha256"] == record["blueprint_sha256"]
     assert {e["path"] for e in events if e["kind"] == "file_written"} >= {f"{JAVA}Contact.java"}
 
@@ -209,3 +209,14 @@ def test_cli_generate_needs_a_prompt_and_a_model(tmp_path, monkeypatch, capsys):
     monkeypatch.delenv("MORTAR_MODEL", raising=False)
     assert cli.main(["generate", "--prompt", "p", "--out", str(tmp_path / "x")]) == 1
     assert "MORTAR_MODEL" in capsys.readouterr().err
+
+
+def test_pipeline_records_reuse_violations(registry, tmp_path):
+    bad = {"files": [{"path": f"{JAVA}J.java", "content": "import com.nimbusds.jwt.SignedJWT;\nclass JwtService {}\n"}]}
+    client = FakeClient({"blueprint": planned_blueprint()}, bad)
+    record = generate(PROMPT, tmp_path / "v", client, registry, k=2)
+    assert record["reuse_violations"] == 2
+    assert {d["kind"] for d in record["reuse_violation_details"]} == {"owned-import", "redefined-type"}
+    assert record["reuse"]["generated_loc"] == 2 and record["reuse"]["reused_loc"] > 0
+    k0 = generate(PROMPT, tmp_path / "v0", FakeClient({"blueprint": planned_blueprint()}, bad), registry, k=0)
+    assert k0["reuse_violations"] == 0 and k0["reuse"]["reused_loc"] == 0
