@@ -115,13 +115,18 @@ def count_loc(path: str, text: str) -> int:
     return sum(1 for line in lines if line.strip())
 
 
-def module_loc(module: ModuleInfo) -> int:
-    """LOC of what a module ships (`module/`, excluding build output), the same files the Assembler vendors."""
-    total = 0
+def module_sources(module: ModuleInfo) -> list[tuple[str, str]]:
+    """(file name, text) of what a module ships (`module/`, excluding build output and non-source files)."""
+    found = []
     for path in sorted(module.module_dir.rglob("*")):
         if path.is_file() and path.suffix in LOC_SUFFIXES and "target" not in path.relative_to(module.module_dir).parts:
-            total += count_loc(path.name, path.read_text(encoding="utf-8"))
-    return total
+            found.append((path.name, path.read_text(encoding="utf-8")))
+    return found
+
+
+def module_loc(module: ModuleInfo) -> int:
+    """LOC of what a module ships (`module/`, excluding build output), the same files the Assembler vendors."""
+    return sum(count_loc(name, text) for name, text in module_sources(module))
 
 
 def reuse_metrics(

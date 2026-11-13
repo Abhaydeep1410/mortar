@@ -6,6 +6,7 @@ Returns a measurement record per stage. Token counts and cost come only from mod
 from __future__ import annotations
 
 import json
+import time
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
@@ -15,7 +16,8 @@ from .agents.repairer import repair
 from .agents.planner import plan
 from .engine.assembler import assemble, write_generated
 from .engine.blueprint_hash import blueprint_sha256
-from .engine.coverage import modules_for_k
+from .engine.coverage import coverage as coverage_of, modules_for_k
+from .engine.run_record import build_run_record
 from .engine.reuse import check_reuse, reuse_metrics
 from .engine.selector import select
 from .engine.vocab import ABLATION_ORDER_PRIMARY
@@ -43,10 +45,16 @@ def generate(
     k: int | None = None,
     order: Sequence[str] = ABLATION_ORDER_PRIMARY,
     events_path: Path | None = None,
-    run_id: str = "run",
+    run_id: str | None = None,
     validator: Callable[[Path], ValidationResult] | None = None,
     max_repairs: int = 2,
+    prompt_id: str = "",
+    seed: int = 1,
+    strategy: str = "ours",
 ) -> dict[str, Any]:
+    started = time.monotonic()
+    if run_id is None:
+        run_id = f"{prompt_id}__{strategy}-k{'all' if k is None else k}__s{seed}" if prompt_id else "run"
     log = EventLog(run_id, events_path)
     planned = plan(prompt, client)
     blueprint_hash = blueprint_sha256(planned.blueprint)
@@ -123,5 +131,18 @@ def generate(
         "validation_stages": [] if validation is None else [s.__dict__ for s in validation.stages],
         "errors": [] if validation is None else [e.__dict__ for e in validation.errors],
     }
-    (out_dir / "run.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    capabilities = list(planned.blueprint.get("capabilities", []))
+    run_record = build_run_record(
+        run_id=run_id, prompt_id=prompt_id, strategy=strategy, seed=seed, k=k, model=client.model,
+        blueprint_sha256=blueprint_hash, planning=planned.usages, generation=[composed.usage], repair=repair_usages,
+        wired=wired, uncovered=selection.uncovered,
+        coverage=coverage_of(capabilities, selection.active) if capabilities else 0.0,
+        reuse=reuse, violations=len(violations),
+        build_success=record["build_success"], first_pass_build=first_pass_build, repair_iterations=iterations,
+        generation_time_s=time.monotonic() - started, files_written=len(files),
+        errors=[f"{e.kind}: {e.path or ''}: {e.message}" for e in (validation.errors if validation else [])],
+    )
+    run_record.write(out_dir)  # run.json: the benchmark-design section 6 record, same schema as Baseline A
+    (out_dir / "run.detail.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    record["run_record"] = run_record.to_dict()
     return record

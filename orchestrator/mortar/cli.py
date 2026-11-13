@@ -101,6 +101,7 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         record = generate(
             prompt, out, LitellmClient.from_env(), load_registry(), args.k, order,
             events_path=out.parent / f"{out.name}.events.jsonl",
+            prompt_id=args.prompt_id, seed=args.seed,
             validator=(lambda d: validate_project(d, SubprocessRunner())) if args.validate else None,
         )
     except (LlmError, PlanError, ComposeError, SelectionError, AssemblyError, RegistryError, OSError) as exc:
@@ -133,6 +134,8 @@ def main(argv: list[str] | None = None) -> int:
     gen.add_argument("--out", required=True, help="output directory (must be empty or new)")
     gen.add_argument("--k", type=int, default=None)
     gen.add_argument("--order", choices=["primary", "alternate"], default="primary")
+    gen.add_argument("--prompt-id", default="", help="benchmark prompt id (e.g. crm-01), recorded in run.json")
+    gen.add_argument("--seed", type=int, default=1, help="repetition index, recorded in run.json")
     gen.add_argument("--validate", action="store_true",
                      help="build and start the project (needs Maven, Docker); repair up to 2 times")
     gen.set_defaults(func=_cmd_generate)

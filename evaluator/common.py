@@ -156,6 +156,13 @@ class RunRecord:
     build_success: bool | None = None
     first_pass_success: bool | None = None
     oracle: dict[str, Any] | None = None
+    # Filled by the Mortar pipeline (docs/benchmark-design.md section 6); None for strategies that do not measure them.
+    blueprint_sha256: str | None = None
+    first_pass_build: bool | None = None
+    coverage: float | None = None
+    reuse_rate_loc: float | None = None
+    reuse_rate_tokens: float | None = None
+    tokenizer: str | None = None
 
     def add_usage(self, stage: str, input_tokens: int, output_tokens: int) -> None:
         if stage not in STAGES:
