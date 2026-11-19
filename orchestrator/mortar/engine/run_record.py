@@ -14,14 +14,16 @@ reuse_rate_tokens = reused_tokens / (reused_tokens + generated_output_tokens), w
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import Any
-
-from evaluator.common import RunRecord
+from typing import TYPE_CHECKING, Any
 
 from ..llm import Usage
+from ..repo import evaluator_common
 from ..registry.loader import ModuleInfo
 from .reuse import module_sources
 from .tokens import count_tokens
+
+if TYPE_CHECKING:
+    from evaluator.common import RunRecord
 
 
 def reused_tokens(modules: Sequence[ModuleInfo], counter: Callable[[str], tuple[int, str]] = count_tokens) -> tuple[int, str]:
@@ -62,8 +64,8 @@ def build_run_record(
     files_written: int,
     errors: Sequence[str],
     counter: Callable[[str], tuple[int, str]] = count_tokens,
-) -> RunRecord:
-    record = RunRecord(run_id=run_id, prompt_id=prompt_id, strategy=strategy, registry_k=k, seed=seed, model=model)
+) -> "RunRecord":
+    record = evaluator_common().RunRecord(run_id=run_id, prompt_id=prompt_id, strategy=strategy, registry_k=k, seed=seed, model=model)
     for stage, usages in (("planning", planning), ("generation", generation), ("repair", repair)):
         for usage in usages:
             record.add_usage(stage, usage.input_tokens, usage.output_tokens)

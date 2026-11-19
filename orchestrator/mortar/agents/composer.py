@@ -75,9 +75,9 @@ class ComposeResult:
 
 def contract_text() -> str:
     """Section 5 of benchmark-design.md, as the other strategies receive it."""
-    from evaluator.common import load_contract  # repo-level helper shared with Baseline A
+    from ..repo import evaluator_common  # repo-level helper shared with Baseline A
 
-    return load_contract(DESIGN_DOC)
+    return evaluator_common().load_contract(DESIGN_DOC)
 
 
 def allowed_prefixes(blueprint: Mapping[str, Any]) -> tuple[str, ...]:
