@@ -130,7 +130,7 @@ Validity checks (run by `tests/test_prompts.py`): each prompt file validates, ev
 ## 10. Oracle policy
 
 - Written by hand, by a person, from the acceptance criteria and application contract, **before** any Mortar run (Week 5 freeze).
-- API oracle: JUnit 5 + RestAssured against the running compose stack. UI oracle: Playwright smoke (login, list renders, create flow for one writable entity).
+- API oracle: JUnit 5 against the running compose stack, HTTP through the JDK client (D32; the doc first said RestAssured). UI oracle: Playwright smoke (login, list renders, create flow for one writable entity).
 - Each test is tagged with its criterion ID so `by_criterion` can be computed mechanically.
 - A shared oracle harness handles login/seeding; per-prompt suites hold only the criteria.
 
