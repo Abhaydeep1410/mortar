@@ -29,7 +29,7 @@
     { "name": "ADMIN", "permissions": ["*"] },
     {
       "name": "SALES_REP",
-      "permissions": ["contact:read", "contact:write", "contact:export", "deal:read", "deal:write", "note:*"]
+      "permissions": ["contact:read", "contact:write", "contact:delete", "contact:export", "deal:read", "deal:write", "note:*"]
     },
     { "name": "VIEWER", "permissions": ["contact:read", "deal:read", "note:read"] }
   ]

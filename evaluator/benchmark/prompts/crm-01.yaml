@@ -8,8 +8,8 @@ prompt: |
   WON and LOST; a deal may only move forward one stage at a time (LEAD→QUALIFIED→
   PROPOSAL→WON), or to LOST from any open stage. Contacts can be searched by name,
   email or company with a `q` query parameter on the list endpoint. Roles: ADMIN has
-  full access; SALES_REP can read and write contacts and deals, create and edit
-  notes, and export contacts; VIEWER can only read contacts, deals and notes.
+  full access; SALES_REP can read, write and delete contacts, read and write deals,
+  create and edit notes, and export contacts; VIEWER can only read contacts, deals and notes.
   Every change to a contact, deal or note must be audited. Contacts can be exported
   as CSV.
 entities:
@@ -19,7 +19,7 @@ entities:
 capabilities: [authentication.jwt, authorization.rbac, audit.logging, crud.pagination, export.csv, deployment.docker]
 roles:
   - { name: ADMIN, permissions: ["*"] }
-  - { name: SALES_REP, permissions: ["contact:read", "contact:write", "contact:export", "deal:read", "deal:write", "note:*"] }
+  - { name: SALES_REP, permissions: ["contact:read", "contact:write", "contact:delete", "contact:export", "deal:read", "deal:write", "note:*"] }
   - { name: VIEWER, permissions: ["contact:read", "deal:read", "note:read"] }
 seeded_users:
   - { username: admin, password: "Admin#12345", role: ADMIN }
