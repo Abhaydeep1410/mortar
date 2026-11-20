@@ -1,5 +1,10 @@
 package dev.mortar.oracle.crm;
 
+import static dev.mortar.oracle.harness.Checks.asLong;
+import static dev.mortar.oracle.harness.Checks.created;
+import static dev.mortar.oracle.harness.Checks.hasAudit;
+import static dev.mortar.oracle.harness.Checks.list;
+import static dev.mortar.oracle.harness.Checks.unique;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -29,10 +34,6 @@ class CrmApiOracle extends OracleBase {
     private static final String VIEWER = "viewer";
 
     // ---------------------------------------------------------------- helpers
-
-    private static String unique() {
-        return "zq" + Long.toString(System.nanoTime(), 36);
-    }
 
     private static Map<String, Object> contact(String name, String email, String company, String phone) {
         Map<String, Object> m = new LinkedHashMap<>();
@@ -66,11 +67,6 @@ class CrmApiOracle extends OracleBase {
         return m;
     }
 
-    private static Resp created(Resp r, String what) {
-        assertEquals(201, r.status(), "creating " + what + " should return 201 Created, got: " + r);
-        return r;
-    }
-
     private static long createContact(String user) {
         return created(Api.post("/api/contacts", Api.as(user), contact()), "a contact").num("id");
     }
@@ -84,12 +80,6 @@ class CrmApiOracle extends OracleBase {
         Map<String, Object> body = deal(contactId, stage);
         body.put("title", title);
         return Api.put("/api/deals/" + dealId, Api.as(REP), body);
-    }
-
-    private static Resp list(String path, String user, String query) {
-        Resp r = Api.get(path + (query.isEmpty() ? "" : "?" + query), Api.as(user));
-        assertEquals(200, r.status(), "GET " + path + "?" + query + " should return 200, got: " + r);
-        return r;
     }
 
     // ---------------------------------------------------------------- crm-01.1 authentication
@@ -390,16 +380,5 @@ class CrmApiOracle extends OracleBase {
         }
         assertTrue(firstAt >= 0 && secondAt >= 0, "both creations must be on the first page of the log");
         assertTrue(secondAt < firstAt, "the newer entry must come first");
-    }
-
-    private static boolean hasAudit(Resp log, String entity, long entityId, String action) {
-        for (Map<String, Object> e : log.content()) {
-            if (entity.equalsIgnoreCase(String.valueOf(e.get("entity"))) && Long.valueOf(entityId).equals(asLong(e.get("entityId"))) && action.equals(e.get("action"))) return true;
-        }
-        return false;
-    }
-
-    private static Long asLong(Object o) {
-        return o instanceof Number n ? n.longValue() : null;
     }
 }

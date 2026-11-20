@@ -15,6 +15,8 @@
     <!-- Which tagged tests to run: harness (no server needed, the default), or a prompt id such as crm-01 (needs the app running). -->
     <oracle.groups>harness</oracle.groups>
     <mortar.baseUrl>http://localhost:8080</mortar.baseUrl>
+    <mortar.healthTimeoutS>60</mortar.healthTimeoutS>
+    <mortar.oracleResults>target/oracle-results.json</mortar.oracleResults>
   </properties>
 
   <dependencies>
@@ -40,6 +42,8 @@
           </includes>
           <systemPropertyVariables>
             <mortar.baseUrl>${mortar.baseUrl}</mortar.baseUrl>
+            <mortar.healthTimeoutS>${mortar.healthTimeoutS}</mortar.healthTimeoutS>
+            <mortar.oracleResults>${mortar.oracleResults}</mortar.oracleResults>
           </systemPropertyVariables>
         </configuration>
       </plugin>
