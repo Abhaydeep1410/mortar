@@ -12,7 +12,7 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 | 2 | Registry part 1 (jwt, rbac, pagination) | Done, green on CI |
 | 3 | Registry part 2 + React template | Done. Java modules green on CI; the template's CI job has not run yet |
 | 4 | Pipeline + MCP server | Code complete (D24-D27): loader, Selector, Assembler, Planner, Composer, `mortar generate`, MCP server |
-| 5 | Validation, repair, oracles | **In progress.** Done: reuse checker + LOC (D28), validation stage + bounded repair (D29), first-real-run hardening (D30). Run-record writer and `reuse_rate_tokens` (D31, 430 tests green). Oracle harness and the crm-01 API suite (D32, validated against a reference app; needs a local `mvn test`). Not started: the other 7 API oracles, the Playwright UI oracle, the freeze |
+| 5 | Validation, repair, oracles | **In progress.** Done: reuse checker + LOC (D28), validation stage + bounded repair (D29), first-real-run hardening (D30). Run-record writer and `reuse_rate_tokens` (D31, 430 tests green). Oracle harness, crm-01 and expense-02 API suites, generic reference server and `validate_oracles.py` (D32, D33; need a local `mvn` run). Not started: the other 6 API suites (inventory-03, saas-admin-04, ats-05, asset-06, vendor-07, timesheet-08), the Playwright UI oracle, the freeze |
 | 6 | Baselines B and C, 1-seed pilot, pin model | Not started |
 | 7 | Benchmark (168 runs) | Not started |
 | 8-9 | Analysis, report, demo, README | Not started |
@@ -51,11 +51,11 @@ Single source of truth for "where are we". Update at the end of every task. Keep
 
 ## Next steps (in order)
 
-1. **Owner:** apply D32 (oracle project), run the two `mvn` commands in item 5, commit, push, check CI.
+1. **Owner:** apply D33 (expense-02 oracle and validation script), run `mvn test` and `python validate_oracles.py` in `evaluator\benchmark\oracle`, commit, push, check CI.
 2. **First real run** (needs Maven, Docker, JDK 21, an API key, `MORTAR_MODEL`). Start without Docker cost by using `--k 6` and no `--validate`, check that the Planner and Composer produce sane output, then add `--validate`:
    `mortar generate --prompt-file evaluator\benchmark\prompts\crm-01.yaml --out runs\crm-01-try1 --k 6`
    (`--prompt-file` expects plain text, so put the prompt text from the YAML's `prompt` field into a `.txt` file first.) Paste any failure and fix the stage or the prompts.
 3. Run Baseline A on `crm-01` for real (closes the Week 1 exit criterion).
 4. ~~Run-record writer and `reuse_rate_tokens`~~ Done in D31 (verify locally). The oracle harness fills `first_pass_success` and `oracle`.
-5. Oracles: harness and crm-01 API suite done (D32). Next: owner runs `cd evaluator\benchmark\oracle && mvn test` (expect 4 harness tests), then `mvn test -Doracle.groups=crm-01 -Dmortar.healthTimeoutS=3` with no app running (expect a build failure and `target\oracle-results.json` with 0/8). Then the other 7 API suites, a reference check for each, the Playwright UI oracle, then freeze prompts and oracles.
+5. Oracles: harness, crm-01 and expense-02 API suites done (D32, D33). Owner: `cd evaluator\benchmark\oracle`, then `mvn test` (expect 4 harness tests) and `python validate_oracles.py` (expect `all oracles validated`). Next: the other 6 API suites (each with a reference server and a `CASES` entry), the Playwright UI oracle, then freeze prompts and oracles.
 6. Still open from Week 4: the `claude mcp add` check against Claude Code.
