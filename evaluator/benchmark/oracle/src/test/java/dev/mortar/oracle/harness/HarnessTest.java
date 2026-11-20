@@ -21,6 +21,8 @@ class HarnessTest {
         assertEquals("/api/people", Contract.path("Person"));
         assertEquals("/api/keys", Contract.path("Key"));
         assertEquals("/api/auditlogs", Contract.path("AuditLog"));
+        assertEquals("/api/stocks", Contract.path("Stock"));
+        assertEquals("/api/locations", Contract.path("Location"));
     }
 
     @Test

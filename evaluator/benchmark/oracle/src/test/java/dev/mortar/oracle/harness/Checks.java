@@ -1,6 +1,7 @@
 package dev.mortar.oracle.harness;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -17,6 +18,13 @@ public final class Checks {
 
     public static Resp created(Resp r, String what) {
         assertEquals(201, r.status(), "creating " + what + " should return 201 Created, got: " + r);
+        return r;
+    }
+
+    /** A create where the prompt allows either 200 or 201 (a criterion that says "201 or 200"): requires one of them and an id. */
+    public static Resp createdOrOk(Resp r, String what) {
+        assertTrue(r.status() == 200 || r.status() == 201, "creating " + what + " should return 201 (or 200), got: " + r);
+        assertTrue(r.obj().get("id") instanceof Number, "the response for " + what + " must contain an id: " + r);
         return r;
     }
 
