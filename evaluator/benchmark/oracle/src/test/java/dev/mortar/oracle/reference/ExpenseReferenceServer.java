@@ -43,7 +43,7 @@ public final class ExpenseReferenceServer extends ContractServer {
     @Override
     protected boolean allowed(String user, String entity, String action) {
         if (bug("employeeCanApprove") && user.equals("employee") && entity.equals("approval")) return true;
-        if (bug("employeeDeletesCategory") && user.equals("employee") && entity.equals("category") && action.equals("write")) return true;
+        if (bug("employeeDeletesCategory") && user.equals("employee") && entity.equals("category") && (action.equals("write") || action.equals("delete"))) return true;
         return super.allowed(user, entity, action);
     }
 

@@ -335,9 +335,12 @@ class CrmApiOracle extends OracleBase {
         assertEquals(200, Api.put("/api/notes/" + noteId, token, editedNote).status());
         Map<String, Object> movedDeal = deal(contactId, "QUALIFIED");
         assertEquals(200, Api.put("/api/deals/" + dealId, token, movedDeal).status());
-        assertEquals(204, Api.delete("/api/notes/" + noteId, token).status());
-        assertEquals(204, Api.delete("/api/deals/" + dealId, token).status());
-        assertEquals(204, Api.delete("/api/contacts/" + contactId, token).status());
+        // Deletes are done as ADMIN, who always holds every permission, so this criterion does not depend on how the
+        // prompt words the SALES_REP delete grant (crm-01.2 covers that).
+        String admin = Api.as(ADMIN);
+        assertEquals(204, Api.delete("/api/notes/" + noteId, admin).status());
+        assertEquals(204, Api.delete("/api/deals/" + dealId, admin).status());
+        assertEquals(204, Api.delete("/api/contacts/" + contactId, admin).status());
 
         Resp log = Api.get("/api/audit-logs?page=0&size=100", Api.as(ADMIN));
         assertEquals(200, log.status(), log.toString());
@@ -350,7 +353,8 @@ class CrmApiOracle extends OracleBase {
         }
         for (Map<String, Object> e : log.content()) {
             if (Long.valueOf(contactId).equals(asLong(e.get("entityId"))) && "contact".equals(String.valueOf(e.get("entity")).toLowerCase())) {
-                assertEquals(REP, e.get("actor"), "the actor is the authenticated user: " + e);
+                String expectedActor = "DELETE".equals(e.get("action")) ? ADMIN : REP;
+                assertEquals(expectedActor, e.get("actor"), "the actor is the authenticated user: " + e);
                 assertFalse(e.get("timestamp") == null, "every entry has a timestamp: " + e);
             }
         }

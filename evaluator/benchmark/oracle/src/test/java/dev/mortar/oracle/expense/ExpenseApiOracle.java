@@ -272,14 +272,16 @@ class ExpenseApiOracle extends OracleBase {
         String token = Api.as(EMPLOYEE);
         long id = createExpense(EMPLOYEE).num("id");
         assertEquals(200, Api.put("/api/expenses/" + id, token, expense(30)).status());
-        assertEquals(204, Api.delete("/api/expenses/" + id, token).status());
+        // The delete is done as ADMIN, who always holds every permission, so this criterion does not depend on whether
+        // the prompt grants EMPLOYEE a delete permission.
+        assertEquals(204, Api.delete("/api/expenses/" + id, Api.as(ADMIN)).status());
 
         Resp log = Api.get("/api/audit-logs?page=0&size=100", Api.as(ADMIN));
         assertEquals(200, log.status(), log.toString());
         for (String action : List.of("CREATE", "UPDATE", "DELETE")) {
             Map<String, Object> entry = auditEntry(log, "expense", id, action);
             assertTrue(entry != null, "expense " + action + " must be audited");
-            assertEquals(EMPLOYEE, entry.get("actor"), "the actor is the authenticated user: " + entry);
+            assertEquals(action.equals("DELETE") ? ADMIN : EMPLOYEE, entry.get("actor"), "the actor is the authenticated user: " + entry);
             assertFalse(entry.get("timestamp") == null, "every entry has a timestamp: " + entry);
         }
     }

@@ -37,13 +37,13 @@ public final class CrmReferenceServer extends ContractServer {
     protected Map<String, Set<String>> permissions() {
         return Map.of(
                 "admin", Set.of("*"),
-                "sales_rep", Set.of("contact:read", "contact:write", "contact:export", "deal:read", "deal:write", "note:*"),
+                "sales_rep", Set.of("contact:read", "contact:write", "contact:delete", "contact:export", "deal:read", "deal:write", "note:*"),
                 "viewer", Set.of("contact:read", "deal:read", "note:read"));
     }
 
     @Override
     protected boolean allowed(String user, String entity, String action) {
-        if (bug("viewerCanWrite") && user.equals("viewer") && action.equals("write")) return true;
+        if (bug("viewerCanWrite") && user.equals("viewer") && (action.equals("write") || action.equals("delete"))) return true;
         if (bug("csvOpenToViewer") && action.equals("export")) return allowed(user, entity, "read");
         return super.allowed(user, entity, action);
     }

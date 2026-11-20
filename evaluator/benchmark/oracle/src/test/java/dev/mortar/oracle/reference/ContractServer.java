@@ -24,6 +24,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * to validate the oracles: a per-prompt subclass supplies entities, users, permissions and the prompt's own rules
  * through hooks. Never part of the benchmark and never given to a model.
  *
+ * Permissions follow the authorization.rbac module: GET needs `read`, POST/PUT `write`, DELETE `delete`, CSV `export`;
+ * `*` and `<entity>:*` grant everything.
+ *
  * Bugs: -Dreference.bugs=a,b,c switches on deliberate faults (each subclass documents its own); `bug(name)`.
  */
 public abstract class ContractServer {
@@ -76,6 +79,20 @@ public abstract class ContractServer {
 
     protected boolean visible(Entity e, Map<String, Object> row, String user) {
         return true;
+    }
+
+    /** A prompt-specific endpoint under /api (path without the `/api/` prefix); null means not handled. */
+    protected Object custom(String method, String path, String user, Map<String, String> query) {
+        return null;
+    }
+
+    /** All rows of a table, for custom endpoints. */
+    protected final List<Map<String, Object>> all(String plural) {
+        return new ArrayList<>(data.getOrDefault(plural, Map.of()).values());
+    }
+
+    protected final void check(String user, String entity, String action) {
+        if (!allowed(user, entity, action)) throw new Bad(403, "forbidden");
     }
 
     // ---- state and helpers for subclasses
@@ -167,6 +184,11 @@ public abstract class ContractServer {
             send(ex, 200, page(newestFirst, query));
             return;
         }
+        Object special = custom(method, path.substring(5), user, query);
+        if (special != null) {
+            send(ex, 200, special);
+            return;
+        }
         Entity e = byPlural.get(resource);
         if (e == null) throw new Bad(404, "unknown resource");
 
@@ -226,7 +248,7 @@ public abstract class ContractServer {
                 send(ex, 200, row);
             }
             case "DELETE" -> {
-                require(user, e, "write");
+                require(user, e, "delete");
                 existing(e, id, user);
                 data.get(e.plural()).remove(id);
                 if (!bug("noAuditOnDelete") || !e.name().equals(auditBugEntity())) record(user, "DELETE", e.name(), id);
