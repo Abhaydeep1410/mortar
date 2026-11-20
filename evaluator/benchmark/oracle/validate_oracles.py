@@ -46,6 +46,20 @@ CASES: dict[str, tuple[str, dict[str, set[str]]]] = {
         "totalWrong": {"expense-02.6", "expense-02.8"},
         "noAuditOnDelete": {"expense-02.9"},
     }),
+    "inventory-03": ("InventoryReferenceServer", {
+        "lowStockPagedShape": set(),  # a variant, not a bug: the other legitimate low-stock response shape must pass too
+        "duplicateSkuAllowed": {"inventory-03.2"},
+        "negativeStockOnCreate": {"inventory-03.3"},
+        "negativeStockOnUpdate": {"inventory-03.3"},
+        "duplicateStockAllowed": {"inventory-03.4"},
+        "lowStockSkipsEmpty": {"inventory-03.5"},
+        "lowStockInclusive": {"inventory-03.5"},
+        "staffCanCreateItem": {"inventory-03.6"},
+        "staffCanDeleteItem": {"inventory-03.6"},
+        "managerCanDeleteLocation": {"inventory-03.6"},
+        "totalWrong": {"inventory-03.7"},
+        "csvOpenToStaff": {"inventory-03.8"},
+    }),
 }
 
 

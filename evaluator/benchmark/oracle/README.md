@@ -23,6 +23,7 @@ mvn test -Doracle.groups=crm-01 -Dmortar.baseUrl=http://localhost:8080
 |---|---|---|---|
 | crm-01 | `crm/CrmApiOracle` | crm-01.1 to .8 | crm-01.9 (Playwright, not written) |
 | expense-02 | `expense/ExpenseApiOracle` | expense-02.1 to .9 | expense-02.10 (Playwright, not written) |
+| inventory-03 | `inventory/InventoryApiOracle` | inventory-03.1 to .8 | inventory-03.9 (Playwright, not written) |
 
 ## Layout
 
@@ -39,7 +40,12 @@ mvn test -Doracle.groups=crm-01 -Dmortar.baseUrl=http://localhost:8080
 2. Assert only what the contract or the criterion text says. Anything else is a bug in the oracle.
 3. Tests create their own data (unique tokens) and never depend on order or on an empty database.
 4. Read totals through a page smaller than the result, so a total that only echoes the page size is caught.
-5. Never put oracle code or text where a model can read it (no leakage).
+5. Permissions follow the `authorization.rbac` vocabulary: POST and PUT need `write`, DELETE needs `delete`. A criterion
+   that is about something else (for example auditing deletes) performs its deletes as ADMIN, so it never depends on how
+   a prompt words a delete grant.
+6. Where the contract leaves a response shape open (for example a custom endpoint), accept every reasonable shape and
+   add a variant to the reference server to prove it.
+7. Never put oracle code or text where a model can read it (no leakage).
 
 ## Validating an oracle (do this for every new suite)
 
