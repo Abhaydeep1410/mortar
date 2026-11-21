@@ -18,7 +18,7 @@ description: Stateless JWT login and request authentication for Spring Boot 4. U
 
 ## Config
 ```yaml
-mortar.auth.jwt:
+reklo.auth.jwt:
   secret: ${JWT_SECRET}
   ttl-minutes: 60
   issuer: my-app
@@ -26,7 +26,7 @@ mortar.auth.jwt:
 ```
 
 ## Integration
-- Dependency `com.mortar:jwt-auth:1.0.0`. Token roles become `ROLE_<name>` authorities.
+- Dependency `com.reklo:jwt-auth:1.0.0`. Token roles become `ROLE_<name>` authorities.
 - Do NOT define a `SecurityFilterChain`, login endpoint, JWT parsing, token filter or `PasswordEncoder`; use `SecurityConfigurer` for extra rules.
 - Encode seeded passwords with the injected `PasswordEncoder`.
 

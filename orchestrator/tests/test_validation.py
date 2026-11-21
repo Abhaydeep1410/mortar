@@ -3,15 +3,15 @@ from pathlib import Path
 
 import pytest
 
-from mortar.agents.composer import ComposeError
-from mortar.agents.repairer import build_user_prompt as repair_prompt
-from mortar.engine.blueprint_validator import load_blueprint
-from mortar.llm import ToolResult, Usage
-from mortar.pipeline import generate
-from mortar.registry.loader import load_registry
-from mortar.validation.errors import BuildError, classify, parse_maven
-from mortar.validation.runner import CommandResult
-from mortar.validation.validate import (
+from reklo.agents.composer import ComposeError
+from reklo.agents.repairer import build_user_prompt as repair_prompt
+from reklo.engine.blueprint_validator import load_blueprint
+from reklo.llm import ToolResult, Usage
+from reklo.pipeline import generate
+from reklo.registry.loader import load_registry
+from reklo.validation.errors import BuildError, classify, parse_maven
+from reklo.validation.runner import CommandResult
+from reklo.validation.validate import (
     VALIDATION_JWT_SECRET,
     ValidationResult,
     prepare_env,
@@ -295,7 +295,7 @@ def test_parse_maven_handles_windows_paths_with_spaces():
 def test_subprocess_runner_resolves_the_executable_through_path(monkeypatch, tmp_path):
     import sys
 
-    from mortar.validation import runner as runner_module
+    from reklo.validation import runner as runner_module
 
     monkeypatch.setattr(runner_module.shutil, "which", lambda name: sys.executable if name == "fake-mvn" else None)
     result = runner_module.SubprocessRunner().run(["fake-mvn", "-c", "print('hi')"], tmp_path, 30)

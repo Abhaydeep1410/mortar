@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.mortar</groupId>
+  <groupId>com.reklo</groupId>
   <artifactId>crud-pagination</artifactId>
   <version>1.0.0</version>
   <packaging>jar</packaging>
-  <name>Mortar CRUD and Pagination</name>
-  <description>Generic REST CRUD controller with paging, sorting and text search for Spring Boot 4 (Mortar registry module crud.pagination).</description>
+  <name>REKLO CRUD and Pagination</name>
+  <description>Generic REST CRUD controller with paging, sorting and text search for Spring Boot 4 (REKLO registry module crud.pagination).</description>
 
   <properties>
     <maven.compiler.release>21</maven.compiler.release>

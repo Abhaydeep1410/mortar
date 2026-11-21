@@ -17,13 +17,13 @@ description: Generic REST CRUD with paging, sorting and text search for Spring B
 
 ## Config
 ```yaml
-mortar.crud:
+reklo.crud:
   default-page-size: 20
   max-page-size: 100
 ```
 
 ## Integration
-- Dependency `com.mortar:crud-pagination:1.0.0`. Per entity: subclass with `@RestController @RequestMapping("/api/<plural>")` and pass the repository, `CrudProperties` and `CrudSettings`.
+- Dependency `com.reklo:crud-pagination:1.0.0`. Per entity: subclass with `@RestController @RequestMapping("/api/<plural>")` and pass the repository, `CrudProperties` and `CrudSettings`.
 - Do NOT write list, get, create, update or delete handlers, `Pageable` parsing, paging response classes, search queries or 400/404 handlers; use `beforeSave` for app rules.
 
 ## Conflicts

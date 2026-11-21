@@ -1,11 +1,11 @@
-# Mortar Blueprint Spec v1
+# REKLO Blueprint Spec v1
 
-The **Application Blueprint** is the contract between every stage of Mortar. The Planner writes it, the Selector annotates it, the Composer and Assembler read it. It is YAML, versioned with `apiVersion: mortar/v1`, and validated by [`schemas/blueprint.schema.json`](../schemas/blueprint.schema.json) plus the semantic rules below. Implementation: `orchestrator/mortar/engine/blueprint_validator.py`.
+The **Application Blueprint** is the contract between every stage of REKLO. The Planner writes it, the Selector annotates it, the Composer and Assembler read it. It is YAML, versioned with `apiVersion: reklo/v1`, and validated by [`schemas/blueprint.schema.json`](../schemas/blueprint.schema.json) plus the semantic rules below. Implementation: `orchestrator/reklo/engine/blueprint_validator.py`.
 
 ## 1. Shape
 
 ```yaml
-apiVersion: mortar/v1
+apiVersion: reklo/v1
 kind: Application
 
 metadata:
@@ -74,7 +74,7 @@ uncovered: []                     # filled by the Selector (§4)
 | `database.flyway` | Migrations baseline | `deployment.docker` |
 | `security.rate-limit` | Request throttling | none in v1 (Phase 2) |
 
-The vocabulary lives in `orchestrator/mortar/engine/vocab.py` and is the single source of truth. A capability outside this list is a validation error. A capability *inside* the list but with no registry module is valid and becomes **uncovered** work for the Composer. This is what makes the coverage ablation possible.
+The vocabulary lives in `orchestrator/reklo/engine/vocab.py` and is the single source of truth. A capability outside this list is a validation error. A capability *inside* the list but with no registry module is valid and becomes **uncovered** work for the Composer. This is what makes the coverage ablation possible.
 
 ## 3. Validation rules
 

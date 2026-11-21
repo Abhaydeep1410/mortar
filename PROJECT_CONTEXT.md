@@ -1,10 +1,10 @@
-# Mortar — Project Context v1.1
+# REKLO — Project Context v1.1
 
-**Mortar: Agentic Application Composer.** *LLMs plan. Mortar builds.*
+**REKLO: Agentic Application Composer.** *LLMs plan. REKLO builds.*
 
 North-star document. Everything below is the contract for what we build. If something isn't here, it's out of scope.
 
-**Changes from v1.0:** project named **Mortar** (CLI `mortar`, Java namespace `com.mortar`, blueprint `apiVersion: mortar/v1`); Spring Boot 4.x (3.2 is EOL); registry cut 9 → 6 modules; benchmark cut 10 → 8 prompts; controlled coverage ablation replaces uncontrolled reuse-rate scatter; Baseline C added; Selector made deterministic; multiple seeds with confidence intervals; `SKILL.md` follows the open Agent Skills format; timeline 6 → 9 weeks; unverifiable claims removed from positioning.
+**Changes from v1.0:** project named **REKLO** (CLI `reklo`, Java namespace `com.reklo`, blueprint `apiVersion: reklo/v1`); Spring Boot 4.x (3.2 is EOL); registry cut 9 → 6 modules; benchmark cut 10 → 8 prompts; controlled coverage ablation replaces uncontrolled reuse-rate scatter; Baseline C added; Selector made deterministic; multiple seeds with confidence intervals; `SKILL.md` follows the open Agent Skills format; timeline 6 → 9 weeks; unverifiable claims removed from positioning.
 
 ---
 
@@ -14,7 +14,7 @@ A deterministic composition engine with LLM-guided planning that assembles deplo
 
 ## 2. Elevator Pitch (60 seconds)
 
-AI coding agents regenerate JWT auth, CRUD endpoints, pagination, and audit logs from scratch every time. That's expensive and inconsistent. Mortar flips the model: an LLM plans against a structured Application Blueprint, deterministic code wires in tested modules from a registry, and the LLM generates only the app-specific remainder. We benchmark against three baselines on 8 internal-tool prompts, and we **ablate the registry (0 / 2 / 4 / 6 modules)** to measure the coverage level at which composition beats regeneration.
+AI coding agents regenerate JWT auth, CRUD endpoints, pagination, and audit logs from scratch every time. That's expensive and inconsistent. REKLO flips the model: an LLM plans against a structured Application Blueprint, deterministic code wires in tested modules from a registry, and the LLM generates only the app-specific remainder. We benchmark against three baselines on 8 internal-tool prompts, and we **ablate the registry (0 / 2 / 4 / 6 modules)** to measure the coverage level at which composition beats regeneration.
 
 ## 3. Thesis & Research Question
 
@@ -31,7 +31,7 @@ AI coding agents regenerate JWT auth, CRUD endpoints, pagination, and audit logs
 
 | Layer | Deliverable |
 |---|---|
-| Orchestrator | Python 3.12 CLI: `mortar generate "<prompt>"` |
+| Orchestrator | Python 3.12 CLI: `reklo generate "<prompt>"` |
 | LLM agents | 2: **Planner**, **Composer** |
 | Deterministic engine | Blueprint validator, **capability→module selector**, module resolver, template renderer, assembler, Docker builder |
 | Blueprint | YAML intermediate representation (versioned, schema-validated) |
@@ -134,7 +134,7 @@ AI coding agents regenerate JWT auth, CRUD endpoints, pagination, and audit logs
 
 ```yaml
 # blueprint.yaml
-apiVersion: mortar/v1
+apiVersion: reklo/v1
 kind: Application
 
 metadata:
@@ -228,9 +228,9 @@ category: authentication
 display_name: JWT Authentication
 
 provides:
-  - interface: com.mortar.auth.JwtService
+  - interface: com.reklo.auth.JwtService
     description: Issue and validate JWT tokens
-  - interface: com.mortar.auth.SecurityConfigurer
+  - interface: com.reklo.auth.SecurityConfigurer
     description: Spring Security filter chain contribution
   - capability: authentication.jwt
 
@@ -268,11 +268,11 @@ description: Stateless JWT auth for Spring Boot. Use when the app needs login, t
 - PostgreSQL (user table); env `JWT_SECRET` (min 32 chars), `JWT_TTL_MINUTES`
 
 ## Config (application.yml)
-mortar.auth.jwt.secret: ${JWT_SECRET}
-mortar.auth.jwt.ttl-minutes: ${JWT_TTL_MINUTES:60}
+reklo.auth.jwt.secret: ${JWT_SECRET}
+reklo.auth.jwt.ttl-minutes: ${JWT_TTL_MINUTES:60}
 
 ## Integration
-- Add dependency `com.mortar:jwt-auth:1.0.0`
+- Add dependency `com.reklo:jwt-auth:1.0.0`
 - Do NOT define your own SecurityFilterChain; this module owns it
 - Inject `JwtService` in the login controller
 
@@ -328,7 +328,7 @@ mortar.auth.jwt.ttl-minutes: ${JWT_TTL_MINUTES:60}
 ## 12. Repo Structure
 
 ```
-mortar/
+reklo/
 ├── README.md                  # chart + results table front and center
 ├── PROJECT_CONTEXT.md         # this document
 ├── docs/
@@ -337,7 +337,7 @@ mortar/
 │   ├── benchmark-design.md
 │   └── results.md
 ├── orchestrator/              # Python
-│   ├── mortar/
+│   ├── reklo/
 │   │   ├── agents/
 │   │   │   ├── planner.py
 │   │   │   └── composer.py
@@ -467,7 +467,7 @@ All internal-tool. Each prompt has: (a) prose description, (b) hand-written acce
 
 | # | Artifact | Purpose |
 |---|---|---|
-| 1 | Working CLI (`mortar generate "..."`) | Demo |
+| 1 | Working CLI (`reklo generate "..."`) | Demo |
 | 2 | 8 prompts × 7 configs × 3 seeds benchmark, full metrics | Evidence |
 | 3 | `results.md` with metrics table + CIs | Resume link |
 | 4 | `coverage_ablation.png` | The story |
@@ -497,7 +497,7 @@ All internal-tool. Each prompt has: (a) prose description, (b) hand-written acce
 
 Done when all are true:
 - ✅ 6 modules build and pass their own tests in isolation
-- ✅ `mortar generate` produces a working app for all 8 prompts (at k = 6)
+- ✅ `reklo generate` produces a working app for all 8 prompts (at k = 6)
 - ✅ All benchmark runs completed, all metrics populated (no TBDs)
 - ✅ Coverage-ablation chart exists with CIs and is interpretable, even if the answer is "no crossover" or "crossover ≈ 0"
 - ✅ Baseline C result reported, whatever it shows

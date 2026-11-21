@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.mortar</groupId>
+  <groupId>com.reklo</groupId>
   <artifactId>jwt-auth</artifactId>
   <version>1.0.0</version>
   <packaging>jar</packaging>
-  <name>Mortar JWT Authentication</name>
-  <description>Stateless JWT login and request authentication for Spring Boot 4 (Mortar registry module authentication.jwt).</description>
+  <name>REKLO JWT Authentication</name>
+  <description>Stateless JWT login and request authentication for Spring Boot 4 (REKLO registry module authentication.jwt).</description>
 
   <properties>
     <maven.compiler.release>21</maven.compiler.release>

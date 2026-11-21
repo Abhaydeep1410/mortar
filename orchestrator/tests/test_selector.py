@@ -5,14 +5,14 @@ from pathlib import Path
 import pytest
 import yaml
 
-from mortar import cli
-from mortar.engine.blueprint_hash import blueprint_sha256
-from mortar.engine.blueprint_validator import errors_only, load_blueprint, validate_blueprint
-from mortar.engine.coverage import modules_for_k, partition_capabilities
-from mortar.engine.naming import entity_path, find_path_collisions, pluralize
-from mortar.engine.selector import SelectionError, _satisfies, select
-from mortar.events import EventLog
-from mortar.registry.loader import load_registry
+from reklo import cli
+from reklo.engine.blueprint_hash import blueprint_sha256
+from reklo.engine.blueprint_validator import errors_only, load_blueprint, validate_blueprint
+from reklo.engine.coverage import modules_for_k, partition_capabilities
+from reklo.engine.naming import entity_path, find_path_collisions, pluralize
+from reklo.engine.selector import SelectionError, _satisfies, select
+from reklo.events import EventLog
+from reklo.registry.loader import load_registry
 
 FIXTURE = Path(__file__).parent / "fixtures" / "crm-01.blueprint.yaml"
 
@@ -47,13 +47,13 @@ def test_path_collisions_detected():
 
 def test_registry_loads_all_six(registry):
     assert len(registry) == 6
-    assert registry["authentication.jwt"].coordinates == "com.mortar:jwt-auth:1.0.0"
+    assert registry["authentication.jwt"].coordinates == "com.reklo:jwt-auth:1.0.0"
 
 
 @pytest.mark.parametrize("k", [0, 2, 4, 6])
 @pytest.mark.parametrize("order", ["primary", "alternate"])
 def test_partition_matches_coverage(blueprint, registry, k, order):
-    from mortar.engine.vocab import ABLATION_ORDER_ALTERNATE, ABLATION_ORDER_PRIMARY
+    from reklo.engine.vocab import ABLATION_ORDER_ALTERNATE, ABLATION_ORDER_PRIMARY
     active, _ = modules_for_k(k, ABLATION_ORDER_ALTERNATE if order == "alternate" else ABLATION_ORDER_PRIMARY)
     sel = select(blueprint, registry, active)
     covered, uncovered = partition_capabilities(blueprint["capabilities"], active)

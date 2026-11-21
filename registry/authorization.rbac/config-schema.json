@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://mortar.dev/schemas/modules/authorization.rbac/config.json",
+  "$id": "https://reklo.dev/schemas/modules/authorization.rbac/config.json",
   "title": "authorization.rbac config",
-  "description": "Appears as blueprint.components[].config. The Selector fills it from blueprint entities and roles. Maps to mortar.auth.rbac.",
+  "description": "Appears as blueprint.components[].config. The Selector fills it from blueprint entities and roles. Maps to reklo.auth.rbac.",
   "type": "object",
   "additionalProperties": false,
   "required": ["resources", "roles"],

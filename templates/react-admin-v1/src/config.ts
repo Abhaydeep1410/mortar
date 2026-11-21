@@ -1,4 +1,4 @@
-import raw from './mortar.config.json';
+import raw from './reklo.config.json';
 
 /** A field is a bare name or a name with an explicit type that overrides the inferred one. */
 export type FieldType = 'text' | 'longtext' | 'email' | 'number' | 'boolean' | 'date' | 'datetime';
@@ -31,14 +31,14 @@ export interface RoleConfig {
   permissions: string[];
 }
 
-export interface MortarConfig {
+export interface RekloConfig {
   appName: string;
   entities: EntityConfig[];
   kanban?: KanbanConfig[];
   roles: RoleConfig[];
 }
 
-export const config = raw as MortarConfig;
+export const config = raw as RekloConfig;
 
 /** Base URL of the backend; set at build time with VITE_API_URL. */
 export const apiUrl: string = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8080';

@@ -1,20 +1,20 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://mortar.dev/schemas/modules/export.csv/config.json",
+  "$id": "https://reklo.dev/schemas/modules/export.csv/config.json",
   "title": "export.csv config",
-  "description": "Appears as blueprint.components[].config. Maps to mortar.export.csv. The exported columns are code in each export controller, not config.",
+  "description": "Appears as blueprint.components[].config. Maps to reklo.export.csv. The exported columns are code in each export controller, not config.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "batchSize": {
-      "description": "Rows read from the database per round trip. Maps to mortar.export.csv.batch-size.",
+      "description": "Rows read from the database per round trip. Maps to reklo.export.csv.batch-size.",
       "type": "integer",
       "minimum": 1,
       "maximum": 5000,
       "default": 500
     },
     "neutralizeFormulas": {
-      "description": "Prefix cells starting with = + - @ tab or CR with an apostrophe. Maps to mortar.export.csv.neutralize-formulas.",
+      "description": "Prefix cells starting with = + - @ tab or CR with an apostrophe. Maps to reklo.export.csv.neutralize-formulas.",
       "type": "boolean",
       "default": true
     }

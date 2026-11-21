@@ -4,9 +4,9 @@ category: authentication
 display_name: JWT Authentication
 
 provides:
-  - interface: com.mortar.auth.JwtService
+  - interface: com.reklo.auth.JwtService
     description: Issue and validate signed JWTs
-  - interface: com.mortar.auth.SecurityConfigurer
+  - interface: com.reklo.auth.SecurityConfigurer
     description: Hook for adding HttpSecurity rules to the module-owned filter chain
   - capability: authentication.jwt
 

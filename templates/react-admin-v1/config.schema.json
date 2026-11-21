@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://mortar.dev/schemas/templates/react-admin-v1/config.json",
-  "title": "react-admin-v1 config (src/mortar.config.json)",
+  "$id": "https://reklo.dev/schemas/templates/react-admin-v1/config.json",
+  "title": "react-admin-v1 config (src/reklo.config.json)",
   "description": "The only file the Assembler writes. Derived from the blueprint: entities and kanban pages from `frontend`, roles from `roles`. Each entity's `path` is the URL segment of its REST endpoint and must match the backend.",
   "type": "object",
   "additionalProperties": false,

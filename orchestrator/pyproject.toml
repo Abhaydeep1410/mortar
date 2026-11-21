@@ -1,7 +1,7 @@
 [project]
-name = "mortar"
+name = "reklo"
 version = "0.1.0"
-description = "Mortar: deterministic composition with LLM-guided planning for Spring Boot + React internal tools."
+description = "REKLO: deterministic composition with LLM-guided planning for Spring Boot + React internal tools."
 requires-python = ">=3.12"
 dependencies = [
   "pyyaml>=6",
@@ -15,14 +15,14 @@ dev = ["pytest>=8"]
 tokens = ["tiktoken"]
 
 [project.scripts]
-mortar = "mortar.cli:main"
+reklo = "reklo.cli:main"
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["mortar*"]
+include = ["reklo*"]
 
 [tool.pytest.ini_options]
 pythonpath = [".", "../tools", ".."]

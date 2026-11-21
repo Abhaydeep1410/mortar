@@ -4,9 +4,9 @@ category: observability
 display_name: Audit Logging
 
 provides:
-  - interface: com.mortar.audit.AuditLog
+  - interface: com.reklo.audit.AuditLog
     description: Audit record entity (actor, action, entity, entityId, timestamp)
-  - interface: com.mortar.audit.AuditLogRepository
+  - interface: com.reklo.audit.AuditLogRepository
     description: Spring Data repository for audit records
   - capability: audit.logging
 

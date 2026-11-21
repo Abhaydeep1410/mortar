@@ -4,7 +4,7 @@ category: authorization
 display_name: Role-Based Access Control
 
 provides:
-  - interface: com.mortar.rbac.PermissionPolicy
+  - interface: com.reklo.rbac.PermissionPolicy
     description: Answers whether a set of roles holds a permission on a resource
   - capability: authorization.rbac
 

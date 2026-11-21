@@ -1,7 +1,7 @@
 import type { AuthProvider } from 'react-admin';
 import { apiUrl } from './config';
 
-export const TOKEN_KEY = 'mortar.token';
+export const TOKEN_KEY = 'reklo.token';
 
 export interface TokenClaims {
   sub: string;

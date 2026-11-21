@@ -14,19 +14,19 @@ def fresh(*args: str) -> subprocess.CompletedProcess:
 
 
 def test_cli_commands_run_without_the_repo_root_on_the_path():
-    result = fresh("-m", "mortar.cli", "validate", "tests/fixtures/crm-01.blueprint.yaml")
+    result = fresh("-m", "reklo.cli", "validate", "tests/fixtures/crm-01.blueprint.yaml")
     assert result.returncode == 0, result.stderr
-    result = fresh("-m", "mortar.cli", "select", "tests/fixtures/crm-01.blueprint.yaml", "--k", "2")
+    result = fresh("-m", "reklo.cli", "select", "tests/fixtures/crm-01.blueprint.yaml", "--k", "2")
     assert result.returncode == 0, result.stderr
 
 
 def test_evaluator_is_found_lazily_when_needed():
     code = (
         "import sys\n"
-        "assert not any(p.rstrip('/\\\\').endswith('mortar') and 'evaluator' in __import__('os').listdir(p) for p in sys.path if p), sys.path\n"
-        "import mortar.pipeline\n"
+        "assert not any(p.rstrip('/\\\\').endswith('reklo') and 'evaluator' in __import__('os').listdir(p) for p in sys.path if p), sys.path\n"
+        "import reklo.pipeline\n"
         "assert 'evaluator' not in sys.modules, 'importing the pipeline must not import evaluator'\n"
-        "from mortar.repo import evaluator_common\n"
+        "from reklo.repo import evaluator_common\n"
         "assert evaluator_common().RunRecord and evaluator_common().load_contract()\n"
     )
     result = fresh("-c", code)

@@ -3,11 +3,11 @@ import json
 import pytest
 
 from evaluator.common import InvalidRun, RunRecord
-from mortar import cli
-from mortar.engine.run_record import reuse_rate_tokens, reused_tokens
-from mortar.engine.tokens import APPROX_NAME, count_tokens
-from mortar.pipeline import generate
-from mortar.registry.loader import load_registry
+from reklo import cli
+from reklo.engine.run_record import reuse_rate_tokens, reused_tokens
+from reklo.engine.tokens import APPROX_NAME, count_tokens
+from reklo.pipeline import generate
+from reklo.registry.loader import load_registry
 
 from test_agents import JAVA, PROMPT, FakeClient, composer_files, planned_blueprint
 

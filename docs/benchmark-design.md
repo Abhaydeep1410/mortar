@@ -1,4 +1,4 @@
-# Mortar Benchmark Design v1
+# REKLO Benchmark Design v1
 
 Authoritative detail for `PROJECT_CONTEXT.md` §13–14. If the two disagree, fix this file and the context doc together.
 
@@ -17,7 +17,7 @@ All use the same pinned model, temperature, max output tokens, and repair budget
 | A | single-agent | One prompt → whole repo | none |
 | B | multi-agent-naive | Planner → Coder (no selector, no assembler) | none |
 | C | single-agent-skills | One agent with `SKILL.md` files + module artifacts as tools, free to use or ignore them | skills only |
-| O@k | mortar | Planner → deterministic Selector → Composer → Assembler | registry of size k |
+| O@k | reklo | Planner → deterministic Selector → Composer → Assembler | registry of size k |
 
 O@k is run at **k ∈ {0, 2, 4, 6}**. O@0 is a sanity check: with no modules it should behave like B plus the pipeline overhead.
 
@@ -47,7 +47,7 @@ Strategies are scored by black-box oracles, so every generated app must satisfy 
 - `GET /actuator/health` returns 200 `{"status":"UP"}` when ready.
 - **Auth:** `POST /api/auth/login` with `{"username","password"}` returns `{"token"}`; all other `/api/**` endpoints require `Authorization: Bearer <token>` (401 without, 403 when the role lacks permission).
 - **Seeded users** (created on first start): `admin/Admin#12345` (ADMIN), plus one user per other role named by the prompt. Username = role name lowercased; password = username with its first letter capitalized, followed by `#12345` (e.g. `sales_rep/Sales_rep#12345`). Each prompt file lists them explicitly in `seeded_users`.
-- **REST convention** per entity: base path `/api/<plural-lowercase-entity>` (lowercase the entity name, then: ends in s, x, z, ch or sh -> add `es`; consonant + y -> `ies`; otherwise add `s`; person, child, man, woman are irregular; implemented once in `orchestrator/mortar/engine/naming.py`, e.g. `Category` -> `categories`, `Entry` -> `entries`); `GET` list supports `?page=<0-based>&size=<n>&sort=<field>,<asc|desc>` and returns `{"content":[...],"totalElements":n,"page":p,"size":s}`; `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}`; JSON field names are the camelCase names in the prompt; `id` is a server-generated integer. `POST` returns 201 with the created entity; `PUT` returns 200 with the updated entity; `DELETE` returns 204; an unknown `id` returns 404; `size` above 100 or an unknown `sort` field returns 400; `q=<text>` on the list endpoint matches case-insensitively as plain text.
+- **REST convention** per entity: base path `/api/<plural-lowercase-entity>` (lowercase the entity name, then: ends in s, x, z, ch or sh -> add `es`; consonant + y -> `ies`; otherwise add `s`; person, child, man, woman are irregular; implemented once in `orchestrator/reklo/engine/naming.py`, e.g. `Category` -> `categories`, `Entry` -> `entries`); `GET` list supports `?page=<0-based>&size=<n>&sort=<field>,<asc|desc>` and returns `{"content":[...],"totalElements":n,"page":p,"size":s}`; `GET /{id}`, `POST`, `PUT /{id}`, `DELETE /{id}`; JSON field names are the camelCase names in the prompt; `id` is a server-generated integer. `POST` returns 201 with the created entity; `PUT` returns 200 with the updated entity; `DELETE` returns 204; an unknown `id` returns 404; `size` above 100 or an unknown `sort` field returns 400; `q=<text>` on the list endpoint matches case-insensitively as plain text.
 - Validation failures return 400 with a JSON body containing a `message`.
 - **CSV export** (when the prompt requires it): `GET /api/<plural>/export.csv` returns `text/csv`, header row = field names, honoring the caller's read permissions.
 - **Audit log** (when the prompt requires it): every successful POST/PUT/DELETE on a non-read-only entity records actor, action, entity, entity id, timestamp; `GET /api/audit-logs?page=&size=` is ADMIN-only (401 without a token, 403 for other roles) and returns the list shape with records `{"id","actor","action","entity","entityId","timestamp"}` newest first: `actor` is the username, `action` is `CREATE`, `UPDATE` or `DELETE`, `entity` is the lowercase singular entity name (for example `contact`), `entityId` is the integer id, `timestamp` is ISO-8601 UTC. `POST` responses carry a `Location` header ending in the new id. Failed or rejected requests are not recorded.
@@ -94,7 +94,7 @@ Definitions:
 - **first_pass_success:** build_success **and** oracle pass-rate = 100% **with zero repair iterations** and zero reuse violations. A stricter flag, `first_pass_build`, records build-only first pass.
 - **oracle:** hand-written JUnit (API) + Playwright (UI smoke) results; every acceptance criterion maps to ≥1 test; `by_criterion` records pass/fail per criterion ID.
 - **coverage:** see `blueprint-spec.md` §4. Baselines A/B: 0. Baseline C: coverage is computed post-hoc from which module artifacts it actually used.
-- **reuse_rate_loc** = `reused_module_LOC / (reused_module_LOC + generated_LOC)`; module LOC counts non-blank, non-comment Java/XML/YAML source of modules actually wired in. `generated_LOC` counts the same for model-written files. Reported with its counter version (`loc-1`, `orchestrator/mortar/engine/reuse.py`): module LOC covers every `.java`, `.xml`, `.yml` and `.yaml` file under the module's `module/` directory (including its `pom.xml`, excluding tests and build output); `generated_LOC` covers the same file types among the model-written files, so a Dockerfile or SQL migration counts for neither. Java comments (line and block) are excluded.
+- **reuse_rate_loc** = `reused_module_LOC / (reused_module_LOC + generated_LOC)`; module LOC counts non-blank, non-comment Java/XML/YAML source of modules actually wired in. `generated_LOC` counts the same for model-written files. Reported with its counter version (`loc-1`, `orchestrator/reklo/engine/reuse.py`): module LOC covers every `.java`, `.xml`, `.yml` and `.yaml` file under the module's `module/` directory (including its `pom.xml`, excluding tests and build output); `generated_LOC` covers the same file types among the model-written files, so a Dockerfile or SQL migration counts for neither. Java comments (line and block) are excluded.
 - **reuse_rate_tokens** = token-equivalent of reused code divided by that plus generated output tokens, using one fixed tokenizer recorded in the run.
 - **reuse_violations:** count from the post-generation checker (`module-spec.md` §6). Any violation clears `first_pass_success`.
 
@@ -129,7 +129,7 @@ Validity checks (run by `tests/test_prompts.py`): each prompt file validates, ev
 
 ## 10. Oracle policy
 
-- Written by hand, by a person, from the acceptance criteria and application contract, **before** any Mortar run (Week 5 freeze).
+- Written by hand, by a person, from the acceptance criteria and application contract, **before** any REKLO run (Week 5 freeze).
 - API oracle: JUnit 5 against the running compose stack, HTTP through the JDK client (D32; the doc first said RestAssured). UI oracle: Playwright smoke (login, list renders, create flow for one writable entity).
 - Each test is tagged with its criterion ID so `by_criterion` can be computed mechanically.
 - A shared oracle harness handles login/seeding; per-prompt suites hold only the criteria.

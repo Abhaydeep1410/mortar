@@ -15,7 +15,7 @@ description: Stateless JWT auth for Spring Boot. Use when the app needs login, t
 
 ## Config (application.yml)
 ```yaml
-mortar:
+reklo:
   auth:
     jwt:
       secret: ${JWT_SECRET}
@@ -23,7 +23,7 @@ mortar:
 ```
 
 ## Integration
-- Add dependency `com.mortar:jwt-auth:1.0.0`
+- Add dependency `com.reklo:jwt-auth:1.0.0`
 - Do NOT define your own SecurityFilterChain; this module owns it
 - Inject `JwtService` in the login controller
 

@@ -4,9 +4,9 @@ category: authentication
 display_name: JWT Authentication
 
 provides:
-  - interface: com.mortar.auth.JwtService
+  - interface: com.reklo.auth.JwtService
     description: Issue and validate JWT tokens
-  - interface: com.mortar.auth.SecurityConfigurer
+  - interface: com.reklo.auth.SecurityConfigurer
     description: Spring Security filter chain contribution
   - capability: authentication.jwt
 

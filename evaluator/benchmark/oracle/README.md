@@ -1,4 +1,4 @@
-# Mortar API oracles
+# REKLO API oracles
 
 Black-box tests that score a generated app against a prompt's acceptance criteria
 (`../prompts/<id>.yaml`) using only the application contract (`docs/benchmark-design.md` section 5).
@@ -8,13 +8,13 @@ Decisions: D32 and D33 in `docs/DECISIONS.md`. Java 21, JUnit 5, no other depend
 
 ```
 mvn test
-mvn test -Doracle.groups=crm-01 -Dmortar.baseUrl=http://localhost:8080
+mvn test -Doracle.groups=crm-01 -Dreklo.baseUrl=http://localhost:8080
 ```
 
 - `mvn test` runs only the harness self-tests (tag `harness`, no server needed).
 - With `-Doracle.groups=<prompt-id>` it runs that prompt's suite against a running stack and writes
   `target/oracle-results.json`: `{"passed": n, "total": m, "by_criterion": {"crm-01.1": true, ...}}`.
-- `-Dmortar.healthTimeoutS=60` (default) is how long to wait for `/actuator/health`; `-Dmortar.oracleResults=path`
+- `-Dreklo.healthTimeoutS=60` (default) is how long to wait for `/actuator/health`; `-Dreklo.oracleResults=path`
   changes the output file.
 
 ## Suites
@@ -58,4 +58,4 @@ For each prompt it starts the reference server, runs the suite, and requires eve
 restarts the server with each bug in `-Dreference.bugs=` and requires exactly the listed criteria to fail. To add a
 prompt: write `reference/<Prompt>ReferenceServer` (a `ContractServer` subclass with its bugs), write the suite, and add
 one entry to `CASES` in `validate_oracles.py`. You can also start a server by hand:
-`java -cp target/test-classes dev.mortar.oracle.reference.CrmReferenceServer 8080`.
+`java -cp target/test-classes dev.reklo.oracle.reference.CrmReferenceServer 8080`.

@@ -6,19 +6,19 @@ from pathlib import Path
 import pytest
 import yaml
 
-from mortar.engine.assembler import (
+from reklo.engine.assembler import (
     SPRING_BOOT_VERSION,
     AssemblyError,
     assemble,
     frontend_config,
     render,
 )
-from mortar.engine.blueprint_hash import blueprint_sha256
-from mortar.engine.blueprint_validator import load_blueprint
-from mortar.engine.coverage import modules_for_k
-from mortar.engine.selector import select
-from mortar.events import EventLog
-from mortar.registry.loader import load_registry
+from reklo.engine.blueprint_hash import blueprint_sha256
+from reklo.engine.blueprint_validator import load_blueprint
+from reklo.engine.coverage import modules_for_k
+from reklo.engine.selector import select
+from reklo.events import EventLog
+from reklo.registry.loader import load_registry
 
 FIXTURE = Path(__file__).parent / "fixtures" / "crm-01.blueprint.yaml"
 NS = {"m": "http://maven.apache.org/POM/4.0.0"}
@@ -47,7 +47,7 @@ def test_full_registry_project(registry, tmp_path):
         "backend/Dockerfile",
         "frontend/Dockerfile",
         "frontend/package-lock.json",
-        "frontend/src/mortar.config.json",
+        "frontend/src/reklo.config.json",
         "docker-compose.yml",
         ".env.example",
         "blueprint.yaml",
@@ -82,13 +82,13 @@ def test_pinned_spring_boot_matches_every_module(registry):
 def test_application_yml_carries_module_configs(registry, tmp_path):
     blueprint, result, _ = build(registry, tmp_path, 6)
     doc = yaml.safe_load((result.root / "backend/src/main/resources/application.yml").read_text())
-    mortar = doc["mortar"]
-    assert mortar["auth"]["jwt"]["issuer"] == "customer-crm"
-    assert "secret" not in mortar["auth"]["jwt"]
-    assert mortar["auth"]["rbac"]["resources"][0] == {"path": "contacts", "name": "contact"}
-    assert mortar["audit"]["admin-role"] == "ADMIN"
-    assert mortar["crud"]["max-page-size"] == 100
-    assert mortar["export"]["csv"]["neutralize-formulas"] is True
+    reklo = doc["reklo"]
+    assert reklo["auth"]["jwt"]["issuer"] == "customer-crm"
+    assert "secret" not in reklo["auth"]["jwt"]
+    assert reklo["auth"]["rbac"]["resources"][0] == {"path": "contacts", "name": "contact"}
+    assert reklo["audit"]["admin-role"] == "ADMIN"
+    assert reklo["crud"]["max-page-size"] == 100
+    assert reklo["export"]["csv"]["neutralize-formulas"] is True
 
 
 def test_k0_has_no_modules_and_no_docker_files(registry, tmp_path):
@@ -98,16 +98,16 @@ def test_k0_has_no_modules_and_no_docker_files(registry, tmp_path):
     vendor = ET.parse(result.root / "backend/vendor/pom.xml").getroot()
     assert vendor.findall(".//m:module", NS) == []
     doc = yaml.safe_load((result.root / "backend/src/main/resources/application.yml").read_text())
-    assert "mortar" not in doc
-    cfg = json.loads((result.root / "frontend/src/mortar.config.json").read_text())
+    assert "reklo" not in doc
+    cfg = json.loads((result.root / "frontend/src/reklo.config.json").read_text())
     assert all(e["searchable"] is False and e["exportable"] is False for e in cfg["entities"])
 
 
 def test_k2_has_jwt_and_crud_only(registry, tmp_path):
     _, result, _ = build(registry, tmp_path, 2)
     doc = yaml.safe_load((result.root / "backend/src/main/resources/application.yml").read_text())
-    assert set(doc["mortar"]) == {"auth", "crud"} and set(doc["mortar"]["auth"]) == {"jwt"}
-    cfg = json.loads((result.root / "frontend/src/mortar.config.json").read_text())
+    assert set(doc["reklo"]) == {"auth", "crud"} and set(doc["reklo"]["auth"]) == {"jwt"}
+    cfg = json.loads((result.root / "frontend/src/reklo.config.json").read_text())
     assert cfg["entities"][0]["searchable"] is True and cfg["entities"][0]["exportable"] is False
 
 
@@ -145,13 +145,13 @@ def test_render_rejects_missing_placeholder():
 
 
 def test_backend_dockerfile_builds_vendored_modules_first(registry):
-    text = (registry["deployment.docker"].path / "module/src/main/resources/mortar/deployment/backend/Dockerfile").read_text()
+    text = (registry["deployment.docker"].path / "module/src/main/resources/reklo/deployment/backend/Dockerfile").read_text()
     assert text.index("vendor/pom.xml") < text.index("COPY src")
     assert re.search(r"-Dmaven\.test\.skip=true", text)
 
 
 def test_cli_assemble(tmp_path, capsys):
-    from mortar import cli
+    from reklo import cli
     out = tmp_path / "proj"
     assert cli.main(["assemble", str(FIXTURE), "--out", str(out), "--k", "4"]) == 0
     assert "uncovered for the Composer" in capsys.readouterr().out

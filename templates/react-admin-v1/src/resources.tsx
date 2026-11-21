@@ -29,7 +29,7 @@ import {
 } from 'react-admin';
 import { Link } from 'react-admin';
 import { ExportCsvButton } from './ExportCsvButton';
-import type { EntityConfig, KanbanConfig, MortarConfig } from './config';
+import type { EntityConfig, KanbanConfig, RekloConfig } from './config';
 import { labelFor, normalizeFields, type Field } from './fields';
 import { can } from './permissions';
 
@@ -150,7 +150,7 @@ function EntityEdit({ entity, remove }: { entity: EntityConfig; remove: boolean 
 }
 
 /** One React Admin resource per entity the signed-in roles may read, with only the actions they hold. */
-export function buildResources(config: MortarConfig, roles: string[]) {
+export function buildResources(config: RekloConfig, roles: string[]) {
   return config.entities
     .filter((entity) => can(config.roles, roles, entity.resource, 'read'))
     .map((entity) => {

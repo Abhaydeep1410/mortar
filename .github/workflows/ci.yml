@@ -19,7 +19,7 @@ jobs:
         run: python -m pytest -q
       - name: Validate example blueprint
         working-directory: orchestrator
-        run: python -m mortar.cli validate tests/fixtures/crm-01.blueprint.yaml
+        run: python -m reklo.cli validate tests/fixtures/crm-01.blueprint.yaml
       - name: SKILL.md budgets (example and any registry modules)
         run: python tools/check_skill_budget.py docs/examples/SKILL.example.md registry
 

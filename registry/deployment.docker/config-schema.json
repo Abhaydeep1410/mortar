@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://mortar.dev/schemas/modules/deployment.docker/config.json",
+  "$id": "https://reklo.dev/schemas/modules/deployment.docker/config.json",
   "title": "deployment.docker config",
   "description": "Appears as blueprint.components[].config. The Assembler substitutes these into .env.example; the ports (8080, 3000) are fixed by the application contract.",
   "type": "object",

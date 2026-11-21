@@ -156,7 +156,7 @@ class RunRecord:
     build_success: bool | None = None
     first_pass_success: bool | None = None
     oracle: dict[str, Any] | None = None
-    # Filled by the Mortar pipeline (docs/benchmark-design.md section 6); None for strategies that do not measure them.
+    # Filled by the REKLO pipeline (docs/benchmark-design.md section 6); None for strategies that do not measure them.
     blueprint_sha256: str | None = None
     first_pass_build: bool | None = None
     coverage: float | None = None

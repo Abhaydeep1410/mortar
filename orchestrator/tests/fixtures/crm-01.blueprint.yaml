@@ -1,4 +1,4 @@
-apiVersion: mortar/v1
+apiVersion: reklo/v1
 kind: Application
 
 metadata:

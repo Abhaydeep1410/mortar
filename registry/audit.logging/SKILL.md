@@ -17,14 +17,14 @@ description: Records who created, updated or deleted which entity, and serves th
 
 ## Config
 ```yaml
-mortar.audit:
+reklo.audit:
   admin-role: ADMIN
   entities:
     - { path: contacts, name: contact }
 ```
 
 ## Integration
-- Dependency `com.mortar:audit-logging:1.0.0`. List writable entities only.
+- Dependency `com.reklo:audit-logging:1.0.0`. List writable entities only.
 - Do NOT write audit entities, repositories, filters, interceptors, `@Audited` annotations, calls to a logger from controllers, or an audit endpoint.
 - Do NOT add a `SecurityFilterChain`; the rules arrive through `SecurityConfigurer`.
 

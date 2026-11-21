@@ -1,8 +1,8 @@
 # react-admin-v1
 
-Mortar's frontend template: React 18, TypeScript, Vite and React Admin 5 over the application contract
+REKLO's frontend template: React 18, TypeScript, Vite and React Admin 5 over the application contract
 (`docs/benchmark-design.md` section 5). The Assembler copies this folder to `frontend/` and writes one
-file, `src/mortar.config.json` (schema: `config.schema.json`). Nothing else is generated.
+file, `src/reklo.config.json` (schema: `config.schema.json`). Nothing else is generated.
 
 | Command | Does |
 |---|---|

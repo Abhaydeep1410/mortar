@@ -6,9 +6,9 @@ Usage:
   python -m evaluator.baselines.single_agent crm-01 --dry-run        # no API call
 
 Environment (identical for every strategy in a benchmark):
-  MORTAR_MODEL              model id understood by litellm (required unless --dry-run)
-  MORTAR_TEMPERATURE        default 0.0
-  MORTAR_MAX_OUTPUT_TOKENS  default 32000
+  REKLO_MODEL              model id understood by litellm (required unless --dry-run)
+  REKLO_TEMPERATURE        default 0.0
+  REKLO_MAX_OUTPUT_TOKENS  default 32000
 
 The agent returns the whole repository in one tool call. Repair iterations are not
 done here: the shared validation harness (Weeks 4-5) builds and tests the output and
@@ -79,13 +79,13 @@ class ModelConfig:
 
     @classmethod
     def from_env(cls, require_model: bool = True) -> "ModelConfig":
-        model = os.environ.get("MORTAR_MODEL", "")
+        model = os.environ.get("REKLO_MODEL", "")
         if require_model and not model:
-            raise SystemExit("MORTAR_MODEL is not set; export the pinned benchmark model id (or use --dry-run).")
+            raise SystemExit("REKLO_MODEL is not set; export the pinned benchmark model id (or use --dry-run).")
         return cls(
             model=model or "<unset>",
-            temperature=float(os.environ.get("MORTAR_TEMPERATURE", "0.0")),
-            max_output_tokens=int(os.environ.get("MORTAR_MAX_OUTPUT_TOKENS", "32000")),
+            temperature=float(os.environ.get("REKLO_TEMPERATURE", "0.0")),
+            max_output_tokens=int(os.environ.get("REKLO_MAX_OUTPUT_TOKENS", "32000")),
         )
 
 

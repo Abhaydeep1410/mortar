@@ -17,7 +17,7 @@ import yaml
 from jsonschema import Draft202012Validator
 
 from check_skill_budget import check_skill
-from mortar.engine.vocab import CAPABILITIES, REGISTRY_V1
+from reklo.engine.vocab import CAPABILITIES, REGISTRY_V1
 
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = ROOT / "registry"
@@ -87,7 +87,7 @@ class TestModule:
 
     def test_pom_matches_the_target_stack(self, module):
         pom = ET.parse(module / "module" / "pom.xml").getroot()
-        assert pom.findtext("m:groupId", namespaces=POM_NS) == "com.mortar"
+        assert pom.findtext("m:groupId", namespaces=POM_NS) == "com.reklo"
         props = pom.find("m:properties", POM_NS)
         assert props.findtext("m:maven.compiler.release", namespaces=POM_NS) == "21"
         boot = props.findtext("m:spring-boot.version", namespaces=POM_NS)

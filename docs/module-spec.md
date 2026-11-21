@@ -1,4 +1,4 @@
-# Mortar Module Spec v1
+# REKLO Module Spec v1
 
 A **module** is a hand-written, independently tested Spring Boot library plus the metadata an agent or the deterministic selector needs to use it without reading its source. Registry modules are never AI-generated.
 
@@ -59,7 +59,7 @@ A JSON Schema (draft 2020-12) describing the module's config block as it appears
 
 ## 5. module/ and tests/
 
-- `module/` is a standalone Maven module with groupId `com.mortar`, built with Maven 3.9+ against Java 21 and Spring Boot 4.1.x.
+- `module/` is a standalone Maven module with groupId `com.reklo`, built with Maven 3.9+ against Java 21 and Spring Boot 4.1.x.
 - `tests/` contains JUnit 5 tests (Testcontainers for PostgreSQL where needed) that run with `mvn verify` from the module directory with no other module present. Isolation is a CI check.
   The module's `pom.xml` sets `<testSourceDirectory>${project.basedir}/../tests/java</testSourceDirectory>` so Maven finds them; Java tests live under `tests/java/`.
 - Modules are **opinionated wrappers** around Spring Security, Spring Data and similar libraries, not reimplementations.
@@ -71,7 +71,7 @@ Each module may declare, in `metadata.yaml` (optional extension, `owns:`), the i
 - declares a type with the same simple name as a selected module's `provides.interface`, or
 - defines a second `SecurityFilterChain` bean when `authentication.jwt` is selected.
 
-`owns.imports` is a list of package prefixes ending in `.` (schema `module-metadata.schema.json`); every v1 module declares it (a test checks). The checker is `orchestrator/mortar/engine/reuse.py`. Comments and string literals are ignored; only the Java the model wrote is checked, against the modules actually selected. Using a module (extending `CrudController`, importing its types) is never a violation. Legitimate Spring Security use (a `UserDetailsService`, for example) is not owned by any module.
+`owns.imports` is a list of package prefixes ending in `.` (schema `module-metadata.schema.json`); every v1 module declares it (a test checks). The checker is `orchestrator/reklo/engine/reuse.py`. Comments and string literals are ignored; only the Java the model wrote is checked, against the modules actually selected. Using a module (extending `CrudController`, importing its types) is never a violation. Legitimate Spring Security use (a `UserDetailsService`, for example) is not owned by any module.
 
 ## 7. Versioning and change policy
 

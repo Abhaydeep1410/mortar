@@ -1,9 +1,9 @@
-# Mortar: agent entry point
+# REKLO: agent entry point
 
 Read this file first. Then read **only** `docs/PROGRESS.md`. Open anything else only when the task needs it.
 Do not read `PROJECT_CONTEXT.md` end to end (about 550 lines); use the section index below.
 
-**What it is:** a deterministic composition engine with LLM-guided planning. An LLM plans a YAML blueprint, deterministic code wires tested Spring Boot modules from a registry, an LLM writes only the app-specific remainder. A benchmark measures when this beats regeneration. *LLMs plan. Mortar builds.*
+**What it is:** a deterministic composition engine with LLM-guided planning. An LLM plans a YAML blueprint, deterministic code wires tested Spring Boot modules from a registry, an LLM writes only the app-specific remainder. A benchmark measures when this beats regeneration. *LLMs plan. REKLO builds.*
 
 ## Where things are
 
@@ -15,15 +15,15 @@ Do not read `PROJECT_CONTEXT.md` end to end (about 550 lines); use the section i
 | Blueprint format and validation error codes | `docs/blueprint-spec.md` |
 | Module layout, metadata, SKILL.md rules | `docs/module-spec.md` |
 | Benchmark, metrics, stats, app contract | `docs/benchmark-design.md` |
-| Capability vocabulary, ablation orders | `orchestrator/mortar/engine/vocab.py` |
+| Capability vocabulary, ablation orders | `orchestrator/reklo/engine/vocab.py` |
 
-Code: `orchestrator/mortar/` (Python engine + CLI), `evaluator/` (baselines, run record), `registry/` (Java modules, Week 2+), `tools/`, `schemas/`.
+Code: `orchestrator/reklo/` (Python engine + CLI), `evaluator/` (baselines, run record), `registry/` (Java modules, Week 2+), `tools/`, `schemas/`.
 
 ## Commands
 
 ```bash
 cd orchestrator && python -m pytest -q          # full suite; must stay green
-python -m mortar.cli validate <blueprint.yaml>  # from orchestrator/
+python -m reklo.cli validate <blueprint.yaml>  # from orchestrator/
 python tools/check_skill_budget.py docs/examples/SKILL.example.md registry
 python -m evaluator.baselines.single_agent crm-01 --dry-run   # from repo root
 ```

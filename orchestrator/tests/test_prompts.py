@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-from mortar.engine.blueprint_validator import errors_only, validate_blueprint
-from mortar.engine.coverage import coverage, modules_for_k
-from mortar.engine.vocab import CAPABILITIES, REGISTRY_V1
+from reklo.engine.blueprint_validator import errors_only, validate_blueprint
+from reklo.engine.coverage import coverage, modules_for_k
+from reklo.engine.vocab import CAPABILITIES, REGISTRY_V1
 
 PROMPT_DIR = Path(__file__).resolve().parents[2] / "evaluator" / "benchmark" / "prompts"
 PROMPT_FILES = sorted(PROMPT_DIR.glob("*.yaml"))
@@ -36,7 +36,7 @@ def name_forms(name: str) -> set[str]:
 def blueprint_from_prompt(p: dict) -> dict:
     """Minimal blueprint implied by a prompt, to check the prompt against blueprint rules."""
     return {
-        "apiVersion": "mortar/v1",
+        "apiVersion": "reklo/v1",
         "kind": "Application",
         "metadata": {"name": p["id"], "prompt": p["prompt"]},
         "application": {"type": "internal-tool", "domain": p["domain"]},

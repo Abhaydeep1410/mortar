@@ -4,7 +4,7 @@ category: data
 display_name: CSV Export
 
 provides:
-  - interface: com.mortar.csv.CsvExportController
+  - interface: com.reklo.csv.CsvExportController
     description: GET <base>/export.csv for one JPA entity, streamed in batches as RFC 4180 CSV
   - capability: export.csv
 

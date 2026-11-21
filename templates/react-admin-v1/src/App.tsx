@@ -1,13 +1,13 @@
 import { Admin, CustomRoutes } from 'react-admin';
 import { Route } from 'react-router-dom';
 import { authProvider } from './authProvider';
-import { config as defaultConfig, type MortarConfig } from './config';
+import { config as defaultConfig, type RekloConfig } from './config';
 import { dataProvider } from './dataProvider';
 import { KanbanBoard } from './KanbanBoard';
 import { can } from './permissions';
 import { buildResources } from './resources';
 
-export function App({ config = defaultConfig }: { config?: MortarConfig }) {
+export function App({ config = defaultConfig }: { config?: RekloConfig }) {
   return (
     <Admin title={config.appName} dataProvider={dataProvider} authProvider={authProvider} requireAuth>
       {(roles: string[]) => [

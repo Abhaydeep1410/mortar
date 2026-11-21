@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://mortar.dev/schemas/module-metadata/v1.json",
-  "title": "Mortar Module metadata.yaml v1",
+  "$id": "https://reklo.dev/schemas/module-metadata/v1.json",
+  "title": "REKLO Module metadata.yaml v1",
   "type": "object",
   "additionalProperties": false,
   "required": ["id", "version", "category", "display_name", "provides", "requires", "spring_boot", "java"],

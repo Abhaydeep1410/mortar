@@ -17,7 +17,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 TEMPLATE = ROOT / "templates" / "react-admin-v1"
 SCHEMA = json.loads((TEMPLATE / "config.schema.json").read_text(encoding="utf-8"))
-SAMPLE = json.loads((TEMPLATE / "src" / "mortar.config.json").read_text(encoding="utf-8"))
+SAMPLE = json.loads((TEMPLATE / "src" / "reklo.config.json").read_text(encoding="utf-8"))
 PROMPT = yaml.safe_load((ROOT / "evaluator" / "benchmark" / "prompts" / "crm-01.yaml").read_text(encoding="utf-8"))
 PACKAGE = json.loads((TEMPLATE / "package.json").read_text(encoding="utf-8"))
 
@@ -75,7 +75,7 @@ def test_frontend_dockerfile_contract_is_met():
     assert lock["lockfileVersion"] >= 3
     assert "build" in PACKAGE["scripts"] and "test" in PACKAGE["scripts"]
     dockerfile = (
-        ROOT / "registry" / "deployment.docker" / "module" / "src" / "main" / "resources" / "mortar" / "deployment" / "frontend" / "Dockerfile"
+        ROOT / "registry" / "deployment.docker" / "module" / "src" / "main" / "resources" / "reklo" / "deployment" / "frontend" / "Dockerfile"
     ).read_text(encoding="utf-8")
     assert "npm run build" in dockerfile and "/build/dist" in dockerfile
     assert "VITE_API_URL" in (TEMPLATE / "src" / "config.ts").read_text(encoding="utf-8")

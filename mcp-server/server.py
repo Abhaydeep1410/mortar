@@ -1,7 +1,7 @@
-"""Mortar registry as an MCP server: three read-only tools over the module registry.
+"""REKLO registry as an MCP server: three read-only tools over the module registry.
 
 Run from the repository root:  python mcp-server/server.py
-Claude Code:  claude mcp add mortar -- python /path/to/mortar/mcp-server/server.py
+Claude Code:  claude mcp add reklo -- python /path/to/reklo/mcp-server/server.py
 Needs `pip install -e "orchestrator[mcp]"`. The server answers from SKILL.md contracts and metadata;
 it never returns module source code.
 """
@@ -17,13 +17,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "orchestrator"))
 from mcp.server.mcpserver import MCPServer  # noqa: E402
 from mcp.server.mcpserver.exceptions import ToolError  # noqa: E402
 
-from mortar.registry import query  # noqa: E402
-from mortar.registry.loader import load_registry  # noqa: E402
+from reklo.registry import query  # noqa: E402
+from reklo.registry.loader import load_registry  # noqa: E402
 
 REGISTRY = load_registry()
 
 server = MCPServer(
-    "mortar-registry",
+    "reklo-registry",
     instructions=(
         "Tested Spring Boot modules. Call search_components to find a module, get_skill to read how to "
         "use it, get_dependencies to see what it needs. Prefer these modules over writing the code again."

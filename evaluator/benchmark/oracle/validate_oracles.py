@@ -80,14 +80,14 @@ def run_case(mvn: str, prompt: str, server: str, bugs: str, label: str) -> dict[
     out.parent.mkdir(parents=True, exist_ok=True)
     out.unlink(missing_ok=True)
     proc = subprocess.Popen(
-        ["java", f"-Dreference.bugs={bugs}", "-cp", str(HERE / "target" / "test-classes"), f"dev.mortar.oracle.reference.{server}", str(PORT)],
+        ["java", f"-Dreference.bugs={bugs}", "-cp", str(HERE / "target" / "test-classes"), f"dev.reklo.oracle.reference.{server}", str(PORT)],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         if not wait_healthy():
             print(f"  {server} did not start")
             return None
-        subprocess.run([mvn, "-q", "test", f"-Doracle.groups={prompt}", f"-Dmortar.baseUrl=http://localhost:{PORT}",
-                        f"-Dmortar.oracleResults={out}"], cwd=HERE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run([mvn, "-q", "test", f"-Doracle.groups={prompt}", f"-Dreklo.baseUrl=http://localhost:{PORT}",
+                        f"-Dreklo.oracleResults={out}"], cwd=HERE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     finally:
         proc.terminate()
         proc.wait(timeout=10)

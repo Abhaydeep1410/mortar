@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from mortar.engine.coverage import (
+from reklo.engine.coverage import (
     capabilities_provided,
     coverage,
     modules_for_k,
     partition_capabilities,
 )
-from mortar.engine.vocab import ABLATION_ORDER_ALTERNATE, ABLATION_ORDER_PRIMARY, REGISTRY_V1
+from reklo.engine.vocab import ABLATION_ORDER_ALTERNATE, ABLATION_ORDER_PRIMARY, REGISTRY_V1
 
 CRM_CAPS = [
     "authentication.jwt",

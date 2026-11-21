@@ -6,15 +6,15 @@ from types import SimpleNamespace
 
 import pytest
 
-from mortar import cli
-from mortar.agents.composer import ComposeError, build_user_prompt as composer_prompt, check_path, compose
-from mortar.agents.planner import PlanError, plan
-from mortar.engine.assembler import assemble
-from mortar.engine.blueprint_validator import load_blueprint
-from mortar.engine.selector import select
-from mortar.llm import LitellmClient, LlmError, ToolResult, Usage
-from mortar.pipeline import generate
-from mortar.registry.loader import load_registry
+from reklo import cli
+from reklo.agents.composer import ComposeError, build_user_prompt as composer_prompt, check_path, compose
+from reklo.agents.planner import PlanError, plan
+from reklo.engine.assembler import assemble
+from reklo.engine.blueprint_validator import load_blueprint
+from reklo.engine.selector import select
+from reklo.llm import LitellmClient, LlmError, ToolResult, Usage
+from reklo.pipeline import generate
+from reklo.registry.loader import load_registry
 
 FIXTURE = Path(__file__).parent / "fixtures" / "crm-01.blueprint.yaml"
 NS = {"m": "http://maven.apache.org/POM/4.0.0"}
@@ -81,7 +81,7 @@ def registry():
 
 
 def selected(registry, k=None):
-    from mortar.engine.coverage import modules_for_k
+    from reklo.engine.coverage import modules_for_k
     active = list(registry) if k is None else modules_for_k(k)[0]
     return select(load_blueprint(FIXTURE), registry, active).blueprint
 
@@ -89,7 +89,7 @@ def selected(registry, k=None):
 def test_composer_prompt_uses_skills_not_code(registry):
     text = composer_prompt(selected(registry), registry, {"backend/pom.xml"})
     assert "CrudController" in text and "Do NOT" in text
-    assert "package com.mortar" not in text
+    assert "package com.reklo" not in text
     assert "/api/contacts" in text and "Application contract" in text
     assert "acceptance" not in text.lower()
 
@@ -206,9 +206,9 @@ def test_client_requires_a_model():
 
 def test_cli_generate_needs_a_prompt_and_a_model(tmp_path, monkeypatch, capsys):
     assert cli.main(["generate", "--out", str(tmp_path / "x")]) == 2
-    monkeypatch.delenv("MORTAR_MODEL", raising=False)
+    monkeypatch.delenv("REKLO_MODEL", raising=False)
     assert cli.main(["generate", "--prompt", "p", "--out", str(tmp_path / "x")]) == 1
-    assert "MORTAR_MODEL" in capsys.readouterr().err
+    assert "REKLO_MODEL" in capsys.readouterr().err
 
 
 def test_pipeline_records_reuse_violations(registry, tmp_path):

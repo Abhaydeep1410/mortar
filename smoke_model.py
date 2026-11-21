@@ -1,7 +1,7 @@
-"""Smoke test for the model endpoint, using the same litellm calls Mortar makes. Costs a few tokens.
+"""Smoke test for the model endpoint, using the same litellm calls REKLO makes. Costs a few tokens.
 
 Usage (cmd, venv active):
-  set MORTAR_MODEL=openai/sensenova-v6-8-flash-lite
+  set REKLO_MODEL=openai/sensenova-v6-8-flash-lite
   set OPENAI_API_BASE=https://token.sensenova.ai/v1
   set OPENAI_API_KEY=<your key>
   python smoke_model.py
@@ -12,9 +12,9 @@ import sys
 
 import litellm
 
-model = os.environ.get("MORTAR_MODEL", "")
+model = os.environ.get("REKLO_MODEL", "")
 if not model:
-    sys.exit("set MORTAR_MODEL first")
+    sys.exit("set REKLO_MODEL first")
 
 print(f"model: {model}  base: {os.environ.get('OPENAI_API_BASE') or os.environ.get('OPENAI_BASE_URL')}")
 
@@ -35,7 +35,7 @@ try:
 except Exception as exc:
     print("2. forced tool call FAILED:", type(exc).__name__, str(exc)[:300])
 
-# 3. cost: Mortar refuses to run without a cost
+# 3. cost: REKLO refuses to run without a cost
 try:
     print("3. litellm cost ok:", litellm.completion_cost(completion_response=r))
 except Exception as exc:

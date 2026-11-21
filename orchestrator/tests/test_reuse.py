@@ -1,7 +1,7 @@
 import pytest
 
-from mortar.engine.reuse import check_reuse, count_loc, module_loc, reuse_metrics, strip_java
-from mortar.registry.loader import load_registry
+from reklo.engine.reuse import check_reuse, count_loc, module_loc, reuse_metrics, strip_java
+from reklo.registry.loader import load_registry
 
 
 @pytest.fixture(scope="module")
@@ -62,7 +62,7 @@ def test_second_filter_chain_only_with_jwt(registry):
 
 
 def test_using_the_module_is_not_a_violation(registry):
-    src = "import com.mortar.crud.CrudController;\nclass ContactController extends CrudController<Contact, ContactRepository> {}\n"
+    src = "import com.reklo.crud.CrudController;\nclass ContactController extends CrudController<Contact, ContactRepository> {}\n"
     assert check_reuse({"C.java": src}, mods(registry, "crud.pagination")) == []
 
 

@@ -19,10 +19,10 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 MODULE = ROOT / "registry" / "deployment.docker"
-FILES = MODULE / "module" / "src" / "main" / "resources" / "mortar" / "deployment"
+FILES = MODULE / "module" / "src" / "main" / "resources" / "reklo" / "deployment"
 COMPOSE = FILES / "docker-compose.yml"
-AUDIT_ENTITY = ROOT / "registry" / "audit.logging" / "module" / "src" / "main" / "java" / "com" / "mortar" / "audit" / "AuditLog.java"
-MIGRATION = MODULE / "module" / "src" / "main" / "resources" / "db" / "migration" / "V0_1__mortar_audit_log.sql"
+AUDIT_ENTITY = ROOT / "registry" / "audit.logging" / "module" / "src" / "main" / "java" / "com" / "reklo" / "audit" / "AuditLog.java"
+MIGRATION = MODULE / "module" / "src" / "main" / "resources" / "db" / "migration" / "V0_1__reklo_audit_log.sql"
 
 
 @pytest.fixture(scope="module")
@@ -58,9 +58,9 @@ def test_no_secret_is_written_into_the_compose_file(compose):
 def test_backend_receives_the_settings_the_other_modules_read(compose):
     env = compose["services"]["backend"]["environment"]
     assert env["SPRING_DATASOURCE_URL"].startswith("jdbc:postgresql://db:5432/")
-    assert "MORTAR_AUTH_JWT_SECRET" in env, "authentication.jwt binds mortar.auth.jwt.secret"
-    assert "MORTAR_AUTH_JWT_ALLOWED_ORIGINS" in env
-    assert "http://localhost:3000" in env["MORTAR_AUTH_JWT_ALLOWED_ORIGINS"]
+    assert "REKLO_AUTH_JWT_SECRET" in env, "authentication.jwt binds reklo.auth.jwt.secret"
+    assert "REKLO_AUTH_JWT_ALLOWED_ORIGINS" in env
+    assert "http://localhost:3000" in env["REKLO_AUTH_JWT_ALLOWED_ORIGINS"]
 
 
 @pytest.mark.parametrize("name", ["backend/Dockerfile", "frontend/Dockerfile"])
@@ -115,7 +115,7 @@ def test_flyway_baseline_matches_the_audit_log_entity():
 
 
 def test_default_properties_expose_only_health():
-    props = (MODULE / "module" / "src" / "main" / "resources" / "mortar-deployment.properties").read_text(encoding="utf-8")
+    props = (MODULE / "module" / "src" / "main" / "resources" / "reklo-deployment.properties").read_text(encoding="utf-8")
     assert "management.endpoints.web.exposure.include=health" in props
     assert "management.endpoint.health.show-details=never" in props
 

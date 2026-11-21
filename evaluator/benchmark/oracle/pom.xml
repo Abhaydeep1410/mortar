@@ -2,11 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>dev.mortar</groupId>
-  <artifactId>mortar-oracle</artifactId>
+  <groupId>dev.reklo</groupId>
+  <artifactId>reklo-oracle</artifactId>
   <version>1.0.0</version>
-  <name>mortar-oracle</name>
-  <description>Black-box API oracles for the Mortar benchmark (docs/benchmark-design.md section 10)</description>
+  <name>reklo-oracle</name>
+  <description>Black-box API oracles for the REKLO benchmark (docs/benchmark-design.md section 10)</description>
 
   <properties>
     <maven.compiler.release>21</maven.compiler.release>
@@ -14,9 +14,9 @@
     <junit.version>5.10.3</junit.version>
     <!-- Which tagged tests to run: harness (no server needed, the default), or a prompt id such as crm-01 (needs the app running). -->
     <oracle.groups>harness</oracle.groups>
-    <mortar.baseUrl>http://localhost:8080</mortar.baseUrl>
-    <mortar.healthTimeoutS>60</mortar.healthTimeoutS>
-    <mortar.oracleResults>target/oracle-results.json</mortar.oracleResults>
+    <reklo.baseUrl>http://localhost:8080</reklo.baseUrl>
+    <reklo.healthTimeoutS>60</reklo.healthTimeoutS>
+    <reklo.oracleResults>target/oracle-results.json</reklo.oracleResults>
   </properties>
 
   <dependencies>
@@ -41,9 +41,9 @@
             <include>**/*Oracle.java</include>
           </includes>
           <systemPropertyVariables>
-            <mortar.baseUrl>${mortar.baseUrl}</mortar.baseUrl>
-            <mortar.healthTimeoutS>${mortar.healthTimeoutS}</mortar.healthTimeoutS>
-            <mortar.oracleResults>${mortar.oracleResults}</mortar.oracleResults>
+            <reklo.baseUrl>${reklo.baseUrl}</reklo.baseUrl>
+            <reklo.healthTimeoutS>${reklo.healthTimeoutS}</reklo.healthTimeoutS>
+            <reklo.oracleResults>${reklo.oracleResults}</reklo.oracleResults>
           </systemPropertyVariables>
         </configuration>
       </plugin>

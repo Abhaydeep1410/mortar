@@ -4,9 +4,9 @@ category: data
 display_name: CRUD and Pagination
 
 provides:
-  - interface: com.mortar.crud.CrudController
+  - interface: com.reklo.crud.CrudController
     description: Generic REST controller (list, get, create, update, delete) for one JPA entity
-  - interface: com.mortar.crud.PageResponse
+  - interface: com.reklo.crud.PageResponse
     description: List response shape {content, totalElements, page, size}
   - capability: crud.pagination
 

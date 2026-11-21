@@ -1,9 +1,9 @@
 {
-  "name": "mortar-react-admin-v1",
+  "name": "reklo-react-admin-v1",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Mortar frontend template: React Admin over the application contract. src/mortar.config.json is filled by the Assembler.",
+  "description": "REKLO frontend template: React Admin over the application contract. src/reklo.config.json is filled by the Assembler.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

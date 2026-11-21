@@ -1,7 +1,7 @@
 import pytest
 
-from mortar.registry import query
-from mortar.registry.loader import load_registry
+from reklo.registry import query
+from reklo.registry.loader import load_registry
 
 
 @pytest.fixture(scope="module")
@@ -44,7 +44,7 @@ def test_summary_has_no_code(registry):
 
 def test_get_skill_returns_the_skill_file(registry):
     text = query.get_skill(registry, "crud.pagination")
-    assert text.startswith("---") and "Do NOT" in text and "package com.mortar" not in text
+    assert text.startswith("---") and "Do NOT" in text and "package com.reklo" not in text
 
 
 def test_get_skill_unknown(registry):
@@ -56,7 +56,7 @@ def test_dependencies_follow_providers(registry):
     deps = query.get_dependencies(registry, "audit.logging")
     assert deps["requires"] == [{"capability": "authentication.jwt", "provided_by": ["authentication.jwt"]}]
     assert deps["requires_modules"] == ["authentication.jwt"]
-    assert deps["unmet_capabilities"] == [] and deps["maven"] == "com.mortar:audit-logging:1.0.0"
+    assert deps["unmet_capabilities"] == [] and deps["maven"] == "com.reklo:audit-logging:1.0.0"
 
 
 def test_dependencies_env_and_empty(registry):

@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from mortar.cli import main as cli_main
-from mortar.engine.blueprint_validator import (
+from reklo.cli import main as cli_main
+from reklo.engine.blueprint_validator import (
     errors_only,
     load_blueprint,
     validate_blueprint,
@@ -30,7 +30,7 @@ def test_valid_blueprint_has_no_issues(bp):
 
 def test_load_blueprint_from_yaml_string():
     data = load_blueprint(FIXTURE.read_text(encoding="utf-8"))
-    assert data["apiVersion"] == "mortar/v1"
+    assert data["apiVersion"] == "reklo/v1"
 
 
 def test_spring_boot_3_is_rejected_by_schema(bp):

@@ -143,10 +143,10 @@ def test_dry_run_makes_no_model_call(capsys, monkeypatch):
 
 
 def test_main_requires_model_env(monkeypatch):
-    monkeypatch.delenv("MORTAR_MODEL", raising=False)
+    monkeypatch.delenv("REKLO_MODEL", raising=False)
     with pytest.raises(SystemExit) as exc:
         main(["crm-01"])
-    assert "MORTAR_MODEL" in str(exc.value)
+    assert "REKLO_MODEL" in str(exc.value)
 
 
 def test_unknown_prompt_id():

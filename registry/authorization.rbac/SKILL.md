@@ -17,7 +17,7 @@ description: Role and permission checks on /api/** for Spring Boot 4. Use when r
 
 ## Config
 ```yaml
-mortar.auth.rbac:
+reklo.auth.rbac:
   resources:
     - { path: contacts, name: contact }
   roles:
@@ -26,7 +26,7 @@ mortar.auth.rbac:
 ```
 
 ## Integration
-- Dependency `com.mortar:rbac-authorization:1.0.0`. Roles are the names the `UserDetailsService` assigns.
+- Dependency `com.reklo:rbac-authorization:1.0.0`. Roles are the names the `UserDetailsService` assigns.
 - Do NOT write `@PreAuthorize`, role checks in controllers, a `SecurityFilterChain`, or permission parsing.
 - Controllers serve `/api/<path>`, `/api/<path>/{id}` and `/api/<path>/export.csv` only.
 
